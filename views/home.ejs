@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .full {
+            width: 100%;
+            height: 10000px;
+            /* Set height to 100% to fill the parent container */
+            /* background-image: url("./Untitled-1.png"); */
+            background-size: cover;
+            /* Ensures the background image covers the entire element */
+        }
+
+        #bod {
+            display: block;
+            background-image: url("./Untitled-2.png");
+            background-size: cover;
+            width: 100%;
+            height: 400px;
+        }
+
+        .navbar {
+            display: flex;
+            width: 100%;
+            height: 50px;
+            backdrop-filter: blur(10px);
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .icon {
+            width: 50px;
+            height: 50px;
+            margin-left: 186px;
+            box-sizing: border-box;
+            background-color: brown;
+            filter: brightness(70%);
+        }
+
+        .sign {
+            box-sizing: border-box;
+            width: 10%;
+        }
+
+        .email {
+            box-sizing: border-box;
+            width: 10%;
+            margin-right: 100px;
+        }
+
+        .nav1 {
+            width: 50%;
+            text-align: center;
+        }
+
+        .child {
+            padding-left: 10px;
+            margin: 20px;
+        }
+
+        .childmov {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .cbox {
+            width: 200px;
+            height: 200px;
+            /* background-color: brown; */
+            border-style: solid;
+            border-color: green;
+            border-width: 5px;
+        }
+
+        .cbox1 {
+            width: 200px;
+            height: 40px;
+            /* background-color: brown; */
+            border-style: solid;
+            border-color: green;
+            border-width: 5px;
+            overflow: auto;
+            text-align: center;
+            display: flex;
+            /* Align content with flexbox */
+            justify-content: center;
+            /* Center horizontally */
+            align-items: center;
+        }
+
+        .thriller {
+            padding-left: 10px;
+            margin: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .thrilmov {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .frictional {
+            padding-left: 10px;
+            margin: 20px;
+        }
+
+        .frictmov {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .mystery {
+            padding-left: 10px;
+            margin: 20px;
+        }
+
+        .mymov {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .search-wrapper {
+            background-color: #7ca2e8;
+            /* Set your desired background color */
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .search-form {
+            display: flex;
+            width: 100%;
+            /* Adjust as needed */
+        }
+
+        .search-box {
+            flex: 1;
+            display: flex;
+            margin-right: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 260px;
+        }
+
+        .search-select {
+            width: 150px;
+            /* Adjust as needed */
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .search-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #cd2326;
+            color: #fff;
+            cursor: pointer;
+        }
+
+
+        /*Finishing  the styling of the search box*/
+    </style>
+</head>
+
+<body>
+    <div class="full">
+        <div id="bod">
+            <div class="navbar">
+                <div class="icon"></div>
+                <div class="nav1">
+                    <h1><b>Welcome</b></h1>
+                </div>
+                <% if (locals.create) { %>
+                    <div class="email">
+                        <b>
+                            <%= locals.create %>
+                                <%= console.log(locals.create)%>
+                        </b>
+                    </div>
+                    <% } else { %>
+                        <div class="sign">
+                            <b><a href="/login">Signin</a></b>
+                        </div>
+                        <div class="sign">
+                            <b><a href="/signup">Signup</a></b>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+        <!-- if the user is signed in , then show the search bar -->
+        <% if(locals.create){ %>
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <form action="/search" method="GET" class="search-form">
+                        <!-- Search input with dropdown menu -->
+                        <div class="search-box">
+                            <input type="text" name="query" placeholder="Explore Books..." class="search-input">
+                            <select name="searchType" class="search-select">
+                                <option value="title">Search by Title</option>
+                                <option value="author">Search by Author</option>
+                            </select>
+                        </div>
+                        <!-- Submit button -->
+                        <button type="submit" class="search-button">Search</button>
+                    </form>
+                </div>
+            </div>
+
+
+
+            <% } %>
+                <% for (let i=0; i < (locals.list).length; i++) { %>
+                    <div class="thriller">
+                        <h1>
+                            <%= list[i] %>
+                        </h1>
+                        <b><a href="\allbooks?subject=<%= list[i]%>">seeall</a></b>
+                    </div>
+                    <div class="thrilmov">
+                        <% for (let j=1; j <=5; j++) { %>
+                            <% let test=(locals.result)[i][j-1].get("image_url_l") %>
+                                <div class="cbox" id="c1"
+                                    style="width:200px; height:200px; background-color:brown; background-image:url('<%= test %>'); background-size:100% 100%;background-position:center;">
+                                </div>
+                                <% } %>
+                    </div>
+                    <br />
+                    <div class="childmov">
+                        <% for (let k=1; k <=5; k++) { %>
+                            <div class="cbox1" id="c<%= k %>">
+                                <% const title=(locals.result)[i][k-1].get('title'); %>
+                                    <a href="/singlebook?book='<%= encodeURIComponent(title) %>'"><b>
+                                            <%= (locals.result)[i][k-1].get("title") %>
+                                        </b></a>
+                            </div>
+                            <% } %>
+                    </div>
+                    <% } %>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .receipt {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .receipt h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .receipt-item {
+            margin-bottom: 10px;
+        }
+
+        .receipt-item label {
+            font-weight: bold;
+        }
+
+        .receipt-item span {
+            margin-left: 10px;
+        }
+
+        .print-button {
+            display: none;
+            /* Initially hide the print button */
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="receipt">
+        <h1>Receipt</h1>
+        <div class="receipt-item">
+            <label>Title:</label>
+            <span>
+                <%= title %>
+            </span>
+        </div>
+        <div class="receipt-item">
+            <label>Author:</label>
+            <span>
+                <%= author %>
+            </span>
+        </div>
+        <div class="receipt-item">
+            <label>Price:</label>
+            <span>₹<%= price %>/-</span>
+        </div>
+        <div class="receipt-item">
+            <label>ISBN:</label>
+            <span>
+                <%= isbn %>
+            </span>
+        </div>
+    </div>
+
+    <!-- Button for printing -->
+    <div class="print-button" id="printButton">
+        <button onclick="printReceipt()">Print Receipt</button>
+    </div>
+
+    <script>
+        function printReceipt() {
+            window.print();
+        }
+
+        // Function to periodically check if ISBN is deleted
+        async function checkISBNDeleted() {
+            // Perform an AJAX request to check if the ISBN is deleted
+            // Replace this with your actual logic to check if ISBN is deleted
+            await fetch('/check_isbn_deleted')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.isDeleted) {
+                        // If ISBN is deleted, show the print button
+                        document.getElementById('printButton').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking ISBN:', error);
+                });
+        }
+
+        // Check ISBN status every 5 seconds (adjust as needed)
+        setInterval(checkISBNDeleted, 2000); // Check every 5 seconds
+    </script>
+</body>
+
+</html>

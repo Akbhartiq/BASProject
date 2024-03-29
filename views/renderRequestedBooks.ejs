@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requested Books</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .books-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        .book-card {
+            width: calc(33.33% - 20px);
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .book-card img {
+            width: 100%;
+            height: auto;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .details {
+            padding: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        p {
+            margin: 0;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 10px;
+        }
+
+        .ignore-button,
+        .search-button,
+        .order-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .ignore-button {
+            background-color: #ff6666;
+            color: #fff;
+        }
+
+        .ignore-button:hover {
+            background-color: #e63939;
+        }
+
+        .search-button {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .search-button:hover {
+            background-color: #0056b3;
+        }
+
+        .order-button {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .order-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Requested Books</h1>
+        <div class="books-container">
+            <% requestedBooks.forEach((book, index)=> { %>
+                <div class="book-card" id="book<%= index %>">
+                    <div class="details">
+                        <h2>
+                            <%= book.title %>
+                        </h2>
+                        <p>Author: <%= book.author %>
+                        </p>
+                        <p>Genre: <%= book.genre %>
+                        </p>
+                        <p>Subject: <%= book.subject %>
+                        </p>
+                        <p>Number Of Demands: <%= book.count %>
+                        </p>
+                    </div>
+                    <div class="action-buttons">
+                        <!-- Ignore Buttons -->
+                        <a href="#" class="ignore-button" onclick="ignoreBook('<%= book._id %>')">Ignore</a>
+                        <!-- Search Buttons -->
+                        <a href="#" class="search-button"
+                            onclick="searchOnline('<%= book.title %>', '<%= book.author %>')">Search Online</a>
+                        <!-- Order Buttons -->
+                        <a href="#" class="order-button"
+                            onclick="orderBook('<%= book.title %>', '<%= book.author %>')">Place Order</a>
+                    </div>
+                </div>
+                <% }); %>
+        </div>
+    </div>
+
+    <script>
+        /*Function to Ignore the requests for the books*/
+        async function ignoreBook(bookId) {
+            try {
+                console.log("Is this function is getting invoked?");
+                const response = await fetch(`/ignore-book/${bookId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    location.reload(); // Reload the page on successful deletion
+                } else {
+                    console.error('Failed to ignore book');
+                }
+            } catch (error) {
+                console.error('Error ignoring book:', error);
+            }
+        }
+        /*Function to search online for the books*/
+        /* Function to search for books online */
+        async function searchOnline(title, author) {
+
+            console.log("I am here in the render function 111!");
+            window.location.href = `/search-online?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
+
+        }
+
+        /*Get The price from isbn using apis*/
+        async function fetchRealPrice(isbn) {
+            try {
+                const response = await fetch(`https://www.googleapis.com/shopping/search/v1/public/products?key=AIzaSyDbmLYQj8drXmSywIM0O2RL2erlwcSlyHY&country=US&q=isbn:${isbn}`);
+                const data = await response.json();
+
+                if (data.items && data.items.length > 0) {
+                    // Assuming the first item in the response contains the pricing information
+                    const price = data.items[0].product.price.amount;
+                    return price;
+                } else {
+                    console.error('No pricing information found');
+                    return 0;
+                }
+            } catch (error) {
+                console.error('Error fetching price:', error);
+                return 0;
+            }
+        }
+    </script>
+</body>
+
+</html>
