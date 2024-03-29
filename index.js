@@ -11,7 +11,7 @@ const { connect } = require("./connect.js");
 const session = require('express-session'); // Import express-session module
 // connect("mongodb://127.0.0.1:27017/accounts").then(() => console.log("mongodb is connected"));
 // const signuprouter = require("./routes/signup.js");
-const { Book, requestedbook, curr_Ordered_books, Customers, Employees, Owners } = require("./models/data.js");
+const { Book, requestedbook, curr_Ordered_books, Customers, Employees, Owners, BookSolds } = require("./models/data.js");
 console.log("HI");
 // console.log(requestedbook);
 // console.log(Book);
@@ -55,7 +55,7 @@ let list = ["Fictional", "Health", "Mystery", "Thriller", "History", "CS"];
 app.set("view engine", "ejs");
 app.set("views", path.resolve("./views"));
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static("views"));
 
 app.get("/", async (req, res) => {
@@ -390,6 +390,7 @@ app.post("/singlebook", async (req, res) => {
 
 // Function to get the ISBN number given the title and the author name
 const axios = require('axios');
+const { stat } = require('fs');
 // const { default: mongoose } = require("mongoose");
 
 async function getISBN(title, author) {
@@ -439,8 +440,8 @@ app.post("/submit_details", async (req, res) => {
 app.get('/view-requested-books', async (req, res) => {
     try {
         // Fetch requested books data from MongoDB
-        const requestedBooks = await requestedbook.find();
-        res.render('renderRequestedBooks.ejs', { requestedBooks });
+        const books = await requestedbook.find();
+        res.render('renderRequestedBooks.ejs', { books });
     } catch (error) {
         console.error('Error fetching requested books:', error);
         res.status(500).send('Internal Server Error');
@@ -485,13 +486,38 @@ app.get('/search-online', async (req, res) => {
 
 
 // get the api to save the data to the backends
-app.post("/get_reciept", async (req, res) => {
-    console.log("inside the save function!");
+app.post("/save_to_currordered_books", async (req, res) => {
+    try {
+        console.log("Inside the save function!");
+        console.log(req.body);
+        console.log(req.query);
+        console.log(loggedinCredentials);
+
+        // Assuming `loggedinCredentials` contains the ID of the logged-in user
+
+        // Save the data to the curr_ordered_books collection
+        await curr_Ordered_books.create({
+            title: req.query.title,
+            author: req.query.author,
+            ISBN: req.query.isbn,
+            customerid: loggedinCredentials,
+            price: req.query.price
+        });
+
+        // Send a success response
+        res.sendStatus(200);
+    } catch (error) {
+        console.error("Error saving data to curr_ordered_books:", error);
+        // Send an error response
+        res.status(500).send("Error saving data to curr_ordered_books");
+    }
+});
+
+// Give the get recipt function here
+app.get("/get_receipt", async (req, res) => {
     console.log(req.body);
-    console.log(loggedinCredentials);
-    // save the data to the
-    curr_Ordered_books.create({ title: req.body.title, author: req.body.author, ISBN: req.body.isbn, customerid: loggedinCredentials, price: req.body.price })
-    res.render("generate_reciept", req.body);
+    console.log(req.query);
+    res.render("generate_reciept", { title: req.query.title, price: req.query.price, isbn: req.query.isbn, author: req.query.author });
 })
 
 // Get the api to check if the book-ordered is issued by the Employee and if it so , then ISBN must be deleted form the Database// Handle request to check if ISBN is deleted
@@ -499,8 +525,11 @@ app.get('/check_isbn_deleted', async (req, res) => {
     try {
         // Perform a query to check if the ISBN is deleted from curr_Ordered_books
         // Here you would perform a query to your MongoDB database to check if the ISBN exists in the curr_Ordered_books collection
+        console.log(req.query);
+        console.log(req.body);
         const isbnExists = await curr_Ordered_books.exists({ ISBN: req.query.isbn });
-
+        console.log(isbnExists);
+        console.log(req.query.isbn);
         // Send the response indicating whether the ISBN is deleted
         res.json({ isDeleted: !isbnExists }); // If ISBN does not exist, it's considered deleted
     } catch (error) {
@@ -542,16 +571,73 @@ app.post("/add-employee", async (req, res) => {
         }
     }
     // console.log(ifsameid);
-    if (!ifsameid) {
+    // if (!ifsameid) {
+    //     await Employees.create({ gmail: emId, password: emPassword });
+    //     // alert("Employee added SuccessFully to the WorkForce!");
+    //     res.redirect("/owner");
+    // }
+    // else {
+    //     // alert(`This gmail Id : ${emId} already exists!`);
+    //     res.redirect("owner");
+    // }
+    if (ifsameid) {
+        res.render("owner", { message: "This email ID already exists!" });
+    } else {
         await Employees.create({ gmail: emId, password: emPassword });
-        // alert("Employee added SuccessFully to the WorkForce!");
-        res.render("success");
+        res.render("owner", { message: "Employee added successfully!" });
     }
-    else {
-        // alert(`This gmail Id : ${emId} already exists!`);
-        res.render("failure");
+
+})
+// Get the api for the remove-employee
+app.post("/remove-employee", async (req, res) => {
+    // find and delete the employee from the database
+    try {
+        await Employees.findOneAndDelete({ gmail: req.body.email });
+        // redirect the owner to owner page again
+        res.render("owner", { message: "Employee removed successfully!" });
+    }
+    catch (error) {
+        res.render("owner", { message: "Error Employee successfully!" });
+    }
+}
+)
+
+// Get the last 10 days statistics
+app.get("/view-last-10-days-stats", async (req, res) => {
+    try {
+        // Get the current date
+        const currentDate = new Date();
+
+        // Calculate the date 10 days ago
+        const startDate = new Date(currentDate);
+        startDate.setDate(startDate.getDate() - 10);
+
+        // Find books sold within the last 10 days
+        const soldbooks = await BookSolds.find();
+
+        // Render the "lastendays.ejs" page with the soldbooks data
+        return res.render("lastendays", { soldbooks });
+    } catch (error) {
+        console.error("Error fetching last 10 days statistics:", error);
+        // Handle error and render an error page if needed
+        return res.render("error", { error });
     }
 })
+
+// API TO SEE THE BOOKS BELOW THRESOLD
+app.get("/view-books-below-threshold", async (req, res) => {
+    // create a json object array
+    let BookBelowThresold = [];
+    // get the thresold value
+    let thresholdvalue = req.query.threshold;
+    console.log(thresholdvalue);
+    // now get the books in the Books that have fallen below the thresold
+    const bookFallenBelowThreshold = await Book.find({ frequency: { $lt: thresholdvalue } });
+    // console.log(bookFallenBelowThreshold.length);
+    res.render("belowthresold", { books: bookFallenBelowThreshold, val: thresholdvalue });
+
+})
+
 // Delete book by ISBN
 app.delete('/delete-book/:isbn', async (req, res) => {
     const isbn = req.params.isbn;
@@ -561,6 +647,19 @@ app.delete('/delete-book/:isbn', async (req, res) => {
         // Find the book in curr_requested_books collection and delete it
         let statusVal = await curr_Ordered_books.findOneAndDelete({ ISBN: isbn });
         if (statusVal) {
+            // Book has been sold 
+            // Get the CurrentDate
+            const currentDate = new Date();
+            const curryear = currentDate.getFullYear();
+            const currmonth = currentDate.getMonth();
+            const currdate = currentDate.getDate();
+            const currhour = currentDate.getHours();
+            // Add the books to the sold history
+            await BookSolds.create({ title: statusVal.title, ISBN: statusVal.ISBN, author: statusVal.author, frequency: statusVal.no_Of_Copies_Asked, details: { Buyer: statusVal.customerid.emailOfUser, Seller: loggedinCredentials.emailOfUser }, price: statusVal.price, currdate: currentDate.toString(), year: curryear, month: currmonth, date: currdate, hours: currhour });
+            // Push to book to the Customer Database
+            await Customers.findOneAndUpdate({ gmail: statusVal.customerid.emailOfUser }, { $push: { bookspurchased: { Date: currentDate.toString(), seller: loggedinCredentials.emailOfUser, copies: statusVal.no_Of_Copies_Asked, price: statusVal.price, ISBN: statusVal.ISBN } } });
+            // Push the book sold to the list of the Employees
+            await Employees.findOneAndUpdate({ gmail: statusVal.customerid.emailOfUser }, { $push: { booksSold: { Date: currdate.toString(), buyer: statusVal.customerid.emailOfUser, copies: statusVal.no_Of_Copies_Asked, price: statusVal.price, ISBN: statusVal.ISBN } } });
             res.sendStatus(200);
         }
         else {
@@ -573,5 +672,71 @@ app.delete('/delete-book/:isbn', async (req, res) => {
         // res.sendStatus(500); // Send internal server error response
     }
 });
+
+// api to order the books
+app.post("/order_book", async (req, res) => {
+    // confirm the fetch request
+    // console.log(req.body);
+    // let's order the book
+    console.log("_____________________");
+    console.log(req.body.title);
+    console.log("_______________________");
+    // console.log(Book.find({ title: req.body.title }));
+    await Book.findOneAndUpdate({ title: req.body.title }, { $inc: { frequency: parseInt(req.body.quantity) } }, { new: true });
+    console.log("Done");
+    res.sendStatus(200);
+
+})
+// api to order the requested books
+app.post("/order_req_book", async (req, res) => {
+    // confirm the fetch request
+    // console.log(req.body);
+    // let's order the book
+    console.log("_____________________");
+    console.log(req.body.title);
+    console.log("_______________________");
+    // console.log(Book.find({ title: req.body.title }));
+    await Book.create({ title: req.body.title, author: req.body.author, ISBN: req.body.ISBN, price: req.body.price, frequency: req.body.quantity });
+    console.log("Done");
+    console.log("HI");
+    res.sendStatus(200);
+
+})
+
+// api to inspect the employee
+app.get("/inspectem", async (req, res) => {
+
+    console.log(req.body);
+    console.log(req.query);
+    // now perform the operation
+    const employee = await Employees.find({ gmail: req.query.employee_email });
+    console.log(`I am inside the employee section!`);
+    console.log(employee);
+    if (employee) {
+        res.render("showemp", { employee: employee });
+    }
+    else {
+        res.render("owner", { message: "No Such Employee Exist!" });
+    }
+}
+)
+
+// api to inspect the customer
+app.get("/inspectcs", async (req, res) => {
+
+    console.log(req.body);
+    console.log(req.query);
+    // now perform the operation
+    const customer = await Customers.find({ gmail: req.query.customer_email });
+    console.log(`I am inside the employee section!`);
+    console.log(customer);
+    if (customer) {
+        res.render("showcs", { customer: customer });
+    }
+    else {
+        res.render("owner", { message: "No Such Employee Exist!" });
+    }
+}
+)
 
 app.listen(PORT, () => console.log("server started"));

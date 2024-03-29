@@ -14,9 +14,15 @@ const customerSchema = new mongoose.Schema(
       required: true,
     },
     bookspurchased:
-    {
-      type: mongoose.Schema.Types.Mixed,
-    },
+      [
+        {
+          Date: String,
+          seller: String,
+          copies: Number,
+          price: Number,
+          ISBN:String
+        }
+      ],
     booksrequested:
     {
       type: mongoose.Schema.Types.Mixed,
@@ -42,9 +48,15 @@ const employeeSchema = new mongoose.Schema({
     default: 2500,
   },
   booksSold:
-  {
-    type: mongoose.Schema.Types.Mixed
-  }
+    [
+      {
+        Date: String,
+        buyer: String,
+        copies: Number,
+        price: Number,
+        ISBN:String,
+      }
+    ],
 })
 
 // Define the owner Schema
@@ -221,6 +233,31 @@ const bookSoldsSchema = new mongoose.Schema({
   details:
   {
     type: mongoose.Schema.Types.Mixed,
+  },
+  currdate:
+  {
+    type: String,
+    required: true,
+  },
+  year:
+  {
+    type: String,
+    required: true,
+  },
+  month:
+  {
+    type: String,
+    required: true,
+  },
+  date:
+  {
+    type: String,
+    required: true,
+  },
+  hours:
+  {
+    type: String,
+    required: true,
   }
 })
 
@@ -230,8 +267,8 @@ const curr_Ordered_books = mongoose.model("currorderedbook", currentorderedbooks
 const requestedbook = mongoose.model("requestedbook", requestedBookSchema);
 
 const Book = mongoose.model("book", book);
-
+const BookSolds = mongoose.model("booksboughts", bookSoldsSchema);
 const Customers = mongoose.model("customer", customerSchema);
 const Employees = mongoose.model("employees", employeeSchema);
 const Owners = mongoose.model("Owners", ownerSchema);
-module.exports = { Book, requestedbook, curr_Ordered_books, Customers, Employees, Owners };
+module.exports = { Book, requestedbook, curr_Ordered_books, Customers, Employees, Owners, BookSolds };

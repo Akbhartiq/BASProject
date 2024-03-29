@@ -81,30 +81,35 @@
     </div>
 
     <script>
+        let isbnCheckInterval; // Declare a variable to hold the interval ID
+
         function printReceipt() {
             window.print();
         }
 
-        // Function to periodically check if ISBN is deleted
+        // Function to check if ISBN is deleted
         async function checkISBNDeleted() {
-            // Perform an AJAX request to check if the ISBN is deleted
-            // Replace this with your actual logic to check if ISBN is deleted
-            await fetch('/check_isbn_deleted')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.isDeleted) {
-                        // If ISBN is deleted, show the print button
-                        document.getElementById('printButton').style.display = 'block';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking ISBN:', error);
-                });
+            try {
+                // Perform an AJAX request to check if the ISBN is deleted
+                const response = await fetch(`/check_isbn_deleted?isbn=<%= isbn %>`);
+                console.log(response);
+                const data = await response.json();
+                console.log(data);
+                if (data.isDeleted) {
+                    // If ISBN is deleted, show the print button
+                    document.getElementById('printButton').style.display = 'block';
+                    // Clear the interval since ISBN is deleted
+                    clearInterval(isbnCheckInterval);
+                }
+            } catch (error) {
+                console.error('Error checking ISBN:', error);
+            }
         }
 
-        // Check ISBN status every 5 seconds (adjust as needed)
-        setInterval(checkISBNDeleted, 2000); // Check every 5 seconds
+        // Start checking ISBN status periodically
+        isbnCheckInterval = setInterval(checkISBNDeleted, 2000); // Check every 2 seconds
     </script>
+
 </body>
 
 </html>

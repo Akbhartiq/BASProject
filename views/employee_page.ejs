@@ -31,7 +31,6 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             padding: 20px;
             width: calc(33.33% - 20px);
-            /* 3 books in a row with space */
             margin-bottom: 20px;
             transition: transform 0.3s ease-in-out;
         }
@@ -50,41 +49,26 @@
 
         .book-card.center {
             width: 100%;
-            /* If there's only one book, it should be centered */
             margin: 0 auto;
         }
 
-        .sell-book-input {
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-        }
-
-        .sell-book-input input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            flex: 1;
-        }
-
-        .sell-book-input button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            margin-left: 10px;
-            cursor: pointer;
-        }
-
+        .sell-book-input,
         .add-book-form {
-            margin-top: 40px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
         }
 
-        .add-book-form input[type="text"],
-        .add-book-form input[type="number"],
-        .add-book-form select {
+        .sell-book-input h3,
+        .add-book-form h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
             margin-bottom: 10px;
             padding: 10px;
             font-size: 16px;
@@ -93,23 +77,23 @@
             width: 100%;
         }
 
-        .add-book-form button {
+        button {
             padding: 10px 20px;
-            background-color: #28a745;
+            background-color: #007bff;
             color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
         }
 
         .view-sales-btn {
             margin-top: 20px;
-            padding: 10px 20px;
             background-color: #ffc107;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
         }
 
         .no-books-message {
@@ -118,59 +102,86 @@
             color: #721c24;
             border-radius: 5px;
         }
+
+        .pub-date {
+            border: 2px solid #d4d3d3;
+            /* Set border thickness and color */
+            border-radius: 100px;
+            /* Make border circular by setting border-radius */
+            margin-bottom: 10px;
+            display: inline-block;
+            /* Ensure the border wraps around the content */
+            padding: 5px 10px;
+            /* Add padding to create space between content and border */
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <% if (books.length > 0) { %>
-        <% var rowCount=Math.ceil(books.length / 3); %>
-        <% for (var i=0; i < rowCount; i++) { %>
-        <div class="book-row">
-            <% for (var j=i * 3; j < Math.min((i + 1) * 3, books.length); j++) { %>
-            <div class="book-card<%= books.length === 1 ? ' center' : '' %>" data-isbn="<%= books[j].ISBN %>">
-                <div><b>Title:</b>
-                    <%= books[j].title %>
-                </div>
-                <div><b>Author:</b>
-                    <%= books[j].author %>
-                </div>
-                <div><b>ISBN:</b>
-                    <%= books[j].ISBN %>
-                </div>
-                <div><b>Price:</b> ₹<%= books[j].price %>
-                </div>
-                <div><b>Customer:</b>
-                    <%= books[j].customerid.emailOfUser %>
-                </div>
-            </div>
-            <% } %>
-        </div>
-        <% } %>
-        <% } else { %>
-        <div class="no-books-message">No Currently Ordered books available</div>
-        <% } %>
+        <% if (books.length> 0) { %>
+            <% var rowCount=Math.ceil(books.length / 3); %>
+                <% for (var i=0; i < rowCount; i++) { %>
+                    <div class="book-row">
+                        <% for (var j=i * 3; j < Math.min((i + 1) * 3, books.length); j++) { %>
+                            <div class="book-card<%= books.length === 1 ? ' center' : '' %>"
+                                data-isbn="<%= books[j].ISBN %>">
+                                <div><b>Title:</b>
+                                    <%= books[j].title %>
+                                </div>
+                                <div><b>Author:</b>
+                                    <%= books[j].author %>
+                                </div>
+                                <div><b>ISBN:</b>
+                                    <%= books[j].ISBN %>
+                                </div>
+                                <div><b>Price:</b> ₹<%= books[j].price %>
+                                </div>
+                                <div><b>Publication Date:</b>
+                                    <%= books[j].publication_date %>
+                                </div>
+                                <div><b>Customer:</b>
+                                    <%= books[j].customerid.emailOfUser %>
+                                </div>
+                            </div>
+                            <% } %>
+                    </div>
+                    <% } %>
+                        <% } else { %>
+                            <div class="no-books-message">No Currently Ordered books available</div>
+                            <% } %>
+                                <% if (books.length> 0) { %>
+                                    <div class="sell-book-input" id="sell-book-id">
+                                        <h3>Sell the book</h3>
+                                        <input type="text" placeholder="Enter ISBN number" id="isbnInput">
+                                        <button onclick="sellBook()">Sell</button>
+                                    </div>
+                                    <% } %>
+                                        <button class="view-sales-btn" onclick="viewSales()" id="view-class-btn-id">View
+                                            Sales
+                                            History and
+                                            Revenue</button>
 
-        <div class="sell-book-input">
-            <h3>Sell the book</h3>
-            <input type="text" placeholder="Enter ISBN number" id="isbnInput">
-            <button onclick="sellBook()">Sell</button>
-        </div>
+                                        <div class="add-book-form" id="add-book-form-id">
+                                            <h3>Add New Book</h3>
+                                            <form id="addBookForm" onsubmit="addBook(event)">
+                                                <input type="text" placeholder="Title" id="titleInput" required>
+                                                <input type="text" placeholder="Author" id="authorInput" required>
+                                                <input type="text" placeholder="ISBN" id="isbnInput" required>
+                                                <input type="text" placeholder="Subject" id="subjectInput">
+                                                <div class="pub-date"><b>Publication-Date</b>
+                                                    <input type="date" placeholder="Publication Date"
+                                                        id="publicationDateInput">
+                                                </div>
+                                                <input type="number" placeholder="Price" id="priceInput" required>
+                                                <input type="number" placeholder="Number of Copies" id="copiesInput"
+                                                    required>
+                                                <button type="submit">Add Book</button>
+                                            </form>
+                                        </div>
 
-        <button class="view-sales-btn" onclick="viewSales()">View Sales History and Revenue</button>
-
-        <div class="add-book-form">
-            <h3>Add New Book</h3>
-            <input type="text" placeholder="Title" id="titleInput">
-            <input type="text" placeholder="Author" id="authorInput">
-            <input type="text" placeholder="ISBN" id="isbnInput">
-            <input type="text" placeholder="Subject" id="subjectInput">
-            <input type="date" placeholder="Publication Date" id="publicationDateInput">
-            <input type="number" placeholder="Price" id="priceInput">
-            <input type="number" placeholder="Number of Copies" id="copiesInput">
-            <button onclick="addBook()">Add Book</button>
-        </div>
     </div>
+
 
     <script>
         async function sellBook() {
@@ -195,8 +206,14 @@
                     const remainingBooks = document.querySelectorAll('.book-card');
                     if (remainingBooks.length === 0) {
                         const container = document.querySelector('.container');
-                        container.innerHTML = '<div class="no-books-message">No Currently Ordered books available</div>';
+                        //container.innerHTML = '<div class="no-books-message">No Currently Ordered books available</div>';
+                        // Automatically refresh the page after 5 seconds
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 5); // Adjust the delay as needed
                     }
+
+                    //Now do one thing , since the book has been sold
                 } else {
                     console.error('Failed to delete book with ISBN', isbnInput);
                     // Optionally, handle errors or display a message to the user
@@ -212,7 +229,9 @@
             console.log('Viewing sales history and revenue');
         }
 
-        async function addBook() {
+        async function addBook(event) {
+            event.preventDefault(); // Prevent the default form submission behavior
+
             // Get the input values
             var titleInput = document.getElementById('titleInput').value;
             var authorInput = document.getElementById('authorInput').value;
@@ -224,8 +243,10 @@
 
             // Send a request to add the book to the database
             // Implement the backend API endpoint to handle book addition
+            //
             console.log('Add book to database:', titleInput, authorInput, isbnInput, subjectInput, publicationDateInput, priceInput, copiesInput);
         }
+
     </script>
 </body>
 

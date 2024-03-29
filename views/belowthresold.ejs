@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Requested Books</title>
+    <title>Below Thresold Books</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -165,7 +165,7 @@
 
 <body>
     <div class="container">
-        <h1>Requested Books
+        <h1>Books with count less than <%=val%>
         </h1>
         <div class="books-container">
             <% books.forEach((book, index)=> { %>
@@ -179,6 +179,11 @@
                         <p>Genre: <%= book.genre %>
                         </p>
                         <p>Subject: <%= book.subject %>
+                        </p>
+                        <p>
+                            ISBN:<%=book.ISBN%>
+                        </p>
+                        <p>Current Count: <%= book.frequency %>
                         </p>
                     </div>
                     <div class="action-buttons">
@@ -195,7 +200,7 @@
                     <div class="dialog-box" id="dialog<%= index %>">
                         <input type="number" id="quantity<%= index %>" placeholder="Enter quantity" min="1" required>
                         <button
-                            onclick="orderBook('<%= book.title %>', '<%= book.author %>','<%=index%>')">Confirm</button>
+                            onclick="orderBook('<%= book.title %>', '<%= book.author %>', '<%= book.ISBN %>','<%=book.price%>','<%=index%>')">Confirm</button>
                     </div>
                 </div>
                 <% }); %>
@@ -204,17 +209,10 @@
 
     <script>
         /* Function to remove the book card from the page */
-        async function ignoreBook(bookId) {
+        async function ignoreBook(bookId, index) {
             try {
-                console.log("Is this function is getting invoked?");
-                const response = await fetch(`/ignore-book/${bookId}`, {
-                    method: 'DELETE'
-                });
-                if (response.ok) {
-                    location.reload(); // Reload the page on successful deletion
-                } else {
-                    console.error('Failed to ignore book');
-                }
+                // Remove the corresponding book card from the page
+                document.getElementById('book' + index).remove();
             } catch (error) {
                 console.error('Error ignoring book:', error);
             }
@@ -231,19 +229,13 @@
             dialogBox.style.display = 'block';
         }
 
-
         /* Function to order the book */
-        async function orderBook(title, author, index) {
+        async function orderBook(title, author, ISBN, price, index) {
             const quantity = document.getElementById('quantity' + index).value;
-            console.log(`I have called You!`);
             console.log(quantity);
-            //Generate the random price
 
-            // Generate a random integer between 1 and 10
-            const randomInt = Math.floor(Math.random() * 2000) + 1;
-            console.log(`We are fine ${randomInt}`);
             try {
-                const response = await fetch('/order_req_book', {
+                const response = await fetch('/order_book', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -251,9 +243,9 @@
                     body: JSON.stringify({
                         title: title,
                         author: author,
-                        ISBN: 1234567890,
+                        ISBN: ISBN,
                         quantity: quantity,
-                        price: randomInt
+                        price: price
                     })
                 });
                 if (response.ok) {

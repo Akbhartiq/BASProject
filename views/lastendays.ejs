@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Last 10 Days Statistics</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+            /* Hide horizontal scrollbar */
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+
+        .scrollable-table {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Last 10 Days Statistics</h1>
+
+        <div class="scrollable-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Books Sold</th>
+                        <th>Who Sold</th>
+                        <th>Price</th>
+                        <th>Number of Copies</th>
+                        <th>Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% soldbooks.forEach(book=> { %>
+                        <tr>
+                            <td>
+                                <%= book.currdate %>
+                            </td>
+                            <td>
+                                <%= book.title %>
+                            </td>
+                            <td>
+                                <%= book.details.seller %>
+                            </td>
+                            <td>$<%= book.price %>
+                            </td>
+                            <td>
+                                <%= book.frequency %>
+                            </td>
+                            <td>$<%= book.price * book.frequency %>
+                            </td>
+                        </tr>
+                        <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
