@@ -17,34 +17,31 @@
 
         #bod {
             display: block;
-            background-image: url("./Untitled-2.png");
+            background-image: url("./herobookstore .png");
             background-size: cover;
             width: 100%;
-            height: 400px;
+            height: 550px;
+            border-radius: 15px;
+            /* Add drop-down shadow */
+            box-shadow: 0px 10px 15px rgba(0.1, 0.1, 0.1, 0.5);
+            /* Adjust values as needed */
+
+            margin-right: 20px;
         }
+
 
         .navbar {
             display: flex;
             width: 100%;
             height: 50px;
-            backdrop-filter: blur(10px);
+
             justify-content: space-around;
             align-items: center;
         }
 
-        .icon {
-            width: 50px;
-            height: 50px;
-            margin-left: 186px;
-            box-sizing: border-box;
-            background-color: brown;
-            filter: brightness(70%);
-        }
 
-        .sign {
-            box-sizing: border-box;
-            width: 10%;
-        }
+
+
 
         .email {
             box-sizing: border-box;
@@ -73,7 +70,7 @@
             height: 200px;
             /* background-color: brown; */
             border-style: solid;
-            border-color: green;
+            border-color: #7ca2e8;
             border-width: 5px;
         }
 
@@ -82,7 +79,7 @@
             height: 40px;
             /* background-color: brown; */
             border-style: solid;
-            border-color: green;
+            border-color: #7ca2e8;
             border-width: 5px;
             overflow: auto;
             text-align: center;
@@ -94,14 +91,42 @@
         }
 
         .thriller {
-            padding-left: 10px;
+            padding: 20px;
             margin: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background-color: #f0f0f0;
+            /* Light gray background color */
+            border-radius: 8px;
+            /* Rounded corners */
         }
 
+        .thriller h1 {
+            margin-bottom: 10px;
+            /* Add some space below the heading */
+        }
+
+        .thriller a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #7ca2e8;
+            /* Light blue background color */
+            color: #fff;
+            /* White text color */
+            text-decoration: none;
+            /* Remove underlines from links */
+            border-radius: 5px;
+            /* Rounded corners */
+            transition: background-color 0.3s ease;
+            /* Smooth transition on hover */
+        }
+
+        .thriller a:hover {
+            background-color: #5c88d0;
+            /* Darker blue color on hover */
+        }
+
+
         .thrilmov {
+
             display: flex;
             align-items: center;
             justify-content: space-around;
@@ -180,6 +205,75 @@
             cursor: pointer;
         }
 
+        .sign {
+            display: inline-block;
+            margin: 0 10px;
+            color: black;
+            margin-top: 15px;
+        }
+
+        .sign a {
+            display: block;
+            padding: 10px;
+            background-color: #588cee;
+            color: #131313;
+            text-decoration: none;
+            text-align: center;
+            font-size: larger;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            width: 80px;
+
+        }
+
+        .sign a:hover {
+            background-color: #5c88d0;
+        }
+
+        .thrilmov {
+            display: flex;
+            flex-wrap: wrap;
+            /* Allow items to wrap to the next line */
+            justify-content: space-around;
+            margin-bottom: 20px;
+            /* Add some bottom margin */
+        }
+
+        .childmov {
+            display: flex;
+            flex-wrap: wrap;
+            /* Allow items to wrap to the next line */
+            justify-content: space-around;
+        }
+
+        .cbox,
+        .cbox1 {
+            width: calc(20% - 20px);
+            /* Set width for each item (20% - margin) */
+            margin-bottom: 20px;
+            /* Add some bottom margin */
+            background-color: #f0f0f0;
+            /* Light gray background color */
+            border-radius: 8px;
+            /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            /* Add shadow for depth */
+        }
+
+        .cbox img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Ensure images cover the entire box */
+        }
+
+        .cbox1 a {
+            display: block;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+        }
 
         /*Finishing  the styling of the search box*/
     </style>
@@ -191,7 +285,7 @@
             <div class="navbar">
                 <div class="icon"></div>
                 <div class="nav1">
-                    <h1><b>Welcome</b></h1>
+
                 </div>
                 <% if (locals.create) { %>
                     <div class="email">
@@ -202,10 +296,10 @@
                     </div>
                     <% } else { %>
                         <div class="sign">
-                            <b><a href="/login">Signin</a></b>
+                            <b><a href="/login">Sign In</a></b>
                         </div>
                         <div class="sign">
-                            <b><a href="/signup">Signup</a></b>
+                            <b><a href="/signup">Sign Up</a></b>
                         </div>
                         <% } %>
             </div>

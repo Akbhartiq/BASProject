@@ -275,7 +275,7 @@ async function SIGNIN(valGmail, valPassword, res) {
 app.get("/owner", async (req, res) => {
     console.log("not ok");
 
-    return res.render("owner")
+    return res.render("owner", { message: "" });
 });
 // get the employee page
 app.get("/employee", async (req, res) => {

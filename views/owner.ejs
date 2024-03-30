@@ -12,7 +12,7 @@
             margin: 0;
             padding: 0;
             background-color: #a48989;
-            background-image: url('https://www.shutterstock.com/shutterstock/photos/206281927/display_1500/stock-vector-red-covered-opened-book-with-pages-fluttering-206281927.jpg');
+            background-image: url('');
             background-size: cover;
             background-position: center;
             background-blend-mode: overlay;
@@ -39,10 +39,14 @@
             background-color: #1f2a5f;
             padding: 10px 20px;
             width: 100%;
+            margin-left: 300px;
+            margin-right: 300px;
         }
 
         .header h1 {
             margin-top: 0;
+            margin-left: 300px;
+            margin-right: 300px;
         }
 
         /* Flex container styling */
@@ -179,16 +183,14 @@
                 <div class="dashboard">
 
                     <!-- Section for requested books -->
-                    <div class="card"
-                        style="background-image: url('https://i.pinimg.com/564x/92/1e/43/921e43b16909d09fa4c6dd88b1933e40.jpg');">
+                    <div class="card" style="background-image: url('');">
                         <h2>Requested Books</h2>
                         <form class="form" action="/view-requested-books" method="GET">
                             <button type="submit">View Requested Books</button>
                         </form>
                     </div>
                     <!-- Section for employee management -->
-                    <div class="card"
-                        style="background-image: url('https://i.pinimg.com/564x/a3/0f/81/a30f816004b8a7ff2024901e0c969bbb.jpg');">
+                    <div class="card" style="background-image: url('');">
                         <h2>Employee Management</h2>
                         <form class="form" action="/add-employee" method="POST">
                             <input type="email" name="email" placeholder="Employee Email" required>
@@ -201,8 +203,7 @@
                         </form>
                     </div>
                     <!-- Section for business data -->
-                    <div class="card"
-                        style="background-image: url('https://img.freepik.com/free-photo/businessman-with-colorful-graph_1232-167.jpg?w=900');">
+                    <div class="card" style="background-image: url('');">
                         <h2>Business Data</h2>
                         <form class="form" action="/view-business-data" method="GET">
                             <button type="submit">View Business Data</button>
@@ -213,8 +214,7 @@
                         </form>
                     </div>
                     <!-- Section for book requests -->
-                    <div class="card"
-                        style="background-image: url('https://i.pinimg.com/564x/df/d3/e8/dfd3e8112fa1f229fe840d66c30355bb.jpg');">
+                    <div class="card" style="background-image: url('');">
                         <h2>Book Requests</h2>
                         <form class="form" action="/book-request" method="POST">
                             <input type="text" name="book_name" placeholder="Book Name" required>
@@ -223,8 +223,7 @@
                     </div>
                 </div>
                 <!-- Section for selecting inspection type -->
-                <div class="card center-align"
-                    style="background-image:url('https://media.istockphoto.com/id/1519491052/photo/new-year-2024-creative-design-concept-with-book-shelf.jpg?s=2048x2048&w=is&k=20&c=Si5fXA5nUFMHVhHVw-8Cm8jh06JX5GeGnAjso3hXIhc=')">
+                <div class="card center-align" style="background-image:url('')">
                     <h2>Select Inspection Type</h2>
                     <!-- Form for inspecting employee -->
                     <form class="form" action="/inspectem" method="GET">
