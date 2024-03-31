@@ -27,13 +27,9 @@
         .book-card {
             background-color: #fff;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-            overflow: hidden;
-            width: calc(50% - 20px);
-            margin-bottom: 20px;
-            margin-left: 10px;
-            margin-right: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .book-details {
@@ -51,10 +47,10 @@
         }
 
         .book-title-container {
-            background-color: #a42674;
+            background-color: #46b4fd;
             margin-left: 10%;
             margin-right: 10%;
-            border-radius: 10cm;
+
         }
 
         .book-title {
@@ -84,15 +80,17 @@
 
         .book-count-wrapper {
             margin-top: 25px;
-            background-color: rgb(0, 255, 204);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
             border-radius: 20px;
             margin-left: 500px;
             margin-right: 500px;
             cursor: pointer;
+            border-width: 100x;
+            background-color: #46b4fd;
         }
 
         .submit-button {
-            background-color: #007bff;
+            background-color: #46b4fd;
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -115,10 +113,58 @@
             color: #333;
             margin-bottom: 20px;
         }
+
+        /* Navigation Bar Styles */
+        nav {
+            background-color: #333;
+            /* Background color of the navigation bar */
+            padding: 10px 20px;
+            /* Padding around the navigation links */
+            color: #fff;
+            /* Text color */
+        }
+
+        nav ul {
+            list-style-type: none;
+            /* Remove default bullet points */
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            /* Display list items horizontally */
+            margin-right: 20px;
+            /* Spacing between each list item */
+        }
+
+        nav ul li a {
+            color: #fff;
+            /* Text color of the links */
+            text-decoration: none;
+            /* Remove underline */
+            font-weight: bold;
+            /* Make the text bold */
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+            /* Underline on hover */
+        }
     </style>
 </head>
 
 <body>
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <!-- Add more navigation links as needed -->
+        </ul>
+    </nav>
+
     <div class="book-count-wrapper">
         <div class="book-count">
             <%= books.length %> Books Found
@@ -157,7 +203,7 @@
                                     <input type="hidden" id="authorInput" name="author">
                                     <input type="hidden" id="priceInput" name="price">
                                     <input type="hidden" id="isbnInput" name="isbn">
-                                    <button type="submit" class="submit-button">Submit</button>
+                                    <button type="submit" class="submit-button">Purchase</button>
                                 </form>
                             </div>
             </div>
@@ -173,7 +219,7 @@
 
             console.log(`BookCard is ${bookCard}`);
             console.log(`Dataset is ${bookCard.dataset}`);
-            const title = bookCard.dataset['title'];
+            const title = bookCard.dataset.title;
             console.log(`Title is ${title}`);
             const author = bookCard.dataset.author;
             console.log(`Title is ${author}`);

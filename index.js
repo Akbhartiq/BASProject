@@ -164,7 +164,14 @@ app.post("/signup", async (req, res) => {
 //         return res.render("signin", { same: "ok" });
 //     }
 // });
-
+// get the about api
+app.get("/about", async (req, res) => {
+    res.render("about");
+})
+// get the contact api
+app.get("/contact", async (req, res) => {
+    res.render("contact");
+})
 app.get("/invokesign", async (req, res) => {
     console.log(req.query);
 
@@ -278,8 +285,19 @@ app.get("/owner", async (req, res) => {
     return res.render("owner", { message: "" });
 });
 // api to render the image of single page
-app.get("/bookpage",async(req,res)=>{
-    
+app.get("/bookpage", async (req, res) => {
+    console.log(req.body);
+    console.log(req.query);
+    console.log("I am here!");
+    // get the book-title here
+    const bookTitle = req.query.title;
+    // search the book-title here 
+    const bookinfo = await Book.find({ title: bookTitle });
+    console.log("I am printing the info of the book!");
+    console.log(bookinfo);
+    console.log("************");
+    res.render("singlebook", { books: bookinfo });
+
 })
 // get the employee page
 app.get("/employee", async (req, res) => {
