@@ -10,34 +10,44 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f2f2f2;
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            z-index: -1;
+            background-image: url("./blue-cyan-minimalism-gradient-wallpaper-preview\ \(1\).jpg");
+            
         }
+
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+
         }
 
         h1 {
             text-align: center;
             margin-bottom: 20px;
-            color: #333;
+            color: #fff;
         }
 
         .books-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-around;
+            color: #fff;
         }
+        
 
         .book-card {
-            width: calc(33.33% - 20px);
+            width: calc(33.33% - 60px);
             margin-bottom: 20px;
-            background-color: #fff;
-            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0);
+            border-radius: 15px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            color: #fff;
         }
 
         .book-card img {
@@ -47,20 +57,29 @@
             border-top-right-radius: 5px;
         }
 
+        .book-card:hover {
+            transform: translateY(-5px);
+            background-color: rgba(0, 0, 0, 0);
+            /* Adjust opacity on hover */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+            /* Adjust box shadow on hover */
+        }
+
         .details {
             padding: 20px;
+            color: #fff;
         }
 
         h2 {
             margin-top: 0;
             margin-bottom: 10px;
             font-size: 20px;
-            color: #333;
+            color: #fff;
         }
 
         p {
             margin: 0;
-            color: #666;
+            color: #fff;
             font-size: 16px;
         }
 
@@ -81,33 +100,41 @@
             font-size: 16px;
             font-weight: bold;
             transition: background-color 0.3s ease;
+            margin-right: 80px;
+            margin-left: 80px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+
         }
 
         .ignore-button {
-            background-color: #ff6666;
+            background-color: #B1D4E0;
+            text-align: center;
             color: #fff;
         }
 
         .ignore-button:hover {
-            background-color: #e63939;
+            background-color: #B1D4E0;
         }
 
         .search-button {
-            background-color: #007bff;
+            background-color: #6AABD2;
             color: #fff;
+            text-align: center;
         }
 
         .search-button:hover {
-            background-color: #0056b3;
+            background-color: #6AABD2;
         }
 
         .order-button {
-            background-color: #28a745;
+            background-color: #0C2D48;
             color: #fff;
+            text-align: center;
         }
 
         .order-button:hover {
-            background-color: #218838;
+            background-color: #0C2D48;
         }
 
         /* Add a specific style for the action buttons */
@@ -160,12 +187,13 @@
         .dialog-box button:hover {
             background-color: #218838;
         }
+
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Books with count less than <%=val%>
+        <h1>Books with less than <%=val%> copies
         </h1>
         <div class="books-container">
             <% books.forEach((book, index)=> { %>

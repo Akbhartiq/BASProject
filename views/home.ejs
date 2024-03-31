@@ -275,6 +275,10 @@
             color: #333;
         }
 
+        .linktopage {
+            border: none;
+        }
+
         /*Finishing  the styling of the search box*/
     </style>
 </head>
@@ -346,9 +350,14 @@
                         <% for (let k=1; k <=5; k++) { %>
                             <div class="cbox1" id="c<%= k %>">
                                 <% const title=(locals.result)[i][k-1].get('title'); %>
-                                    <a href="/singlebook?book='<%= encodeURIComponent(title) %>'"><b>
+                                    <!-- <a href="/singlebook?book='<%= encodeURIComponent(title) %>'"><b>
                                             <%= (locals.result)[i][k-1].get("title") %>
-                                        </b></a>
+                                        </b></a> -->
+                                    <form action="/bookpage" method="get">
+                                        <button class="linktopage">
+                                            <%=title%>
+                                        </button>
+                                    </form>
                             </div>
                             <% } %>
                     </div>

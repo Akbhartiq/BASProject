@@ -277,6 +277,10 @@ app.get("/owner", async (req, res) => {
 
     return res.render("owner", { message: "" });
 });
+// api to render the image of single page
+app.get("/bookpage",async(req,res)=>{
+    
+})
 // get the employee page
 app.get("/employee", async (req, res) => {
     console.log(typeof (Customers));

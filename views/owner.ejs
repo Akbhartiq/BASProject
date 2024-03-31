@@ -11,13 +11,16 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #a48989;
-            background-image: url('');
             background-size: cover;
             background-position: center;
             background-blend-mode: overlay;
+            z-index: -1;
+            background-image: url("./blue-cyan-minimalism-gradient-wallpaper-preview\ \(1\).jpg");
+            
         }
-
+        
+        
+        
         /* Container styling */
         .container {
             max-width: 1200px;
@@ -34,47 +37,99 @@
             text-align: center;
             margin-bottom: 20px;
             color: #e1e2e6;
-            background-color: white;
-            border-radius: 2cm;
-            background-color: #1f2a5f;
-            padding: 10px 20px;
-            width: 100%;
-            margin-left: 300px;
-            margin-right: 300px;
+            border-radius: 0.5cm;
+            background-color: #2f52ff;
+            padding: 10px 10px 0px 10px;
+            width: 16cm;
         }
 
         .header h1 {
-            margin-top: 0;
-            margin-left: 300px;
-            margin-right: 300px;
+            margin-top: 0.2cm;
+            color: white;
         }
 
         /* Flex container styling */
         .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 1.2cm;
+        }
+
+        /* Card styles */
+        .card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+
+        .card h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .card form {
             display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .card form input[type="text"],
+        .card form input[type="email"],
+        .card form input[type="password"],
+        .card form input[type="number"] {
             width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .card form button {
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .card form button:hover {
+            background-color: #0056b3;
         }
 
         /* Card styling */
-        .card {
-            width: 30%;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            color: #fff;
-            background-color: white;
-        }
 
         .card h2 {
-            color: black;
+            color: rgb(255, 255, 255);
             margin-top: 0;
             margin-bottom: 20px;
+        }
+
+        /* Card styles */
+        .card {
+            width: 14cm;
+            background-color: rgba(0, 0, 0, 0);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            background-color: rgba(0, 0, 0, 0);
+            /* Adjust opacity on hover */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+            /* Adjust box shadow on hover */
         }
 
         /* Form styling */
@@ -143,27 +198,96 @@
             text-align: center;
         }
 
+        /* Card styles for Select Inspection Type */
+        .card.center-align {
+            background-color: rgba(0, 0, 0, 0);
+            /* Set the background color with opacity */
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card.center-align:hover {
+            transform: translateY(-5px);
+            background-color: rgba(0, 0, 0, 0);
+            /* Adjust opacity on hover */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+            /* Adjust box shadow on hover */
+        }
+
+        .card.center-align h2 {
+            font-size: 24px;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .card.center-align form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .card.center-align form label {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .card.center-align form input[type="email"] {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .card.center-align form button {
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .card.center-align form button:hover {
+            background-color: #0056b3;
+        }
+
+
         /* Button container */
         .button-container {
-            display: flex;
+            display: grid;
             justify-content: space-between;
-            align-items: center;
+            align-items:flex-start;
             margin-top: 20px;
         }
 
         /* Button styling */
         .button-container button {
-            width: 48%;
+           
             padding: 10px;
             background-color: #007bff;
             color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin: 0.3cm;
+            width: 10cm;
+            
+        }
+
+        .button-container button:hover {
+            background-color: #0056b3; /* Change background color on hover */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Change shadow effect on hover */
         }
 
         label {
-            color: black;
+            color: rgb(255, 255, 255);
             font-size: xx-large;
         }
     </style>
