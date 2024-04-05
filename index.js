@@ -6,16 +6,10 @@ const fetch = import('node-fetch');
 const express = require("express");
 const path = require('path');
 const bodyParser = require('body-parser');
-// const signinrouter = require("./routes/signin.js"); // Import the router directly
-const { connect } = require("./connect.js");
-const session = require('express-session'); // Import express-session module
-// connect("mongodb://127.0.0.1:27017/accounts").then(() => console.log("mongodb is connected"));
-// const signuprouter = require("./routes/signup.js");
+const session = require('express-session')
+
+// get the  schema here
 const { Book, requestedbook, curr_Ordered_books, Customers, Employees, Owners, BookSolds } = require("./models/data.js");
-console.log("HI");
-// console.log(requestedbook);
-// console.log(Book);
-const { info, log } = require("console");
 
 // get the mongoose
 const mongoose = require('mongoose');
@@ -30,6 +24,16 @@ mongoose.connect('mongodb://localhost/accounts', {
 });
 
 
+// 5th April
+// Define a Mongoose schema
+const UserSchema = new mongoose.Schema({
+    username: String,
+    email: String,
+    password: String
+});
+
+// Create a Mongoose model
+const user = mongoose.model('User', UserSchema);
 
 // create the app instance
 const app = express();
@@ -40,7 +44,7 @@ const PORT = 5000;
 app.use(session({
     secret: 'your-secret-key',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: MongoStore.create({
         mongoUrl: 'mongodb://localhost/accounts',
         collectionName: 'sessions'
@@ -49,6 +53,27 @@ app.use(session({
 
 // middleware
 app.use(bodyParser.json());
+
+
+// 5th April 19
+// Middleware to check if user is authenticated
+const isAuthenticated = async (req, res, next) => {
+    console.log("Inside the isAuth function!");
+    console.log(req.session.user)
+    if (req.session.user) {
+        console.log("I am inside the authentication thing");
+        console.log(`${req.session.user}`);
+        console.log(`${req.session.user.username}`)
+        console.log(`${req.session.user.email}`)
+        console.log(`${req.session.user.password}`)
+        next(); // User is authenticated, proceed to the next middleware/route handler
+    } else {
+        res.redirect('/login'); // User is not authenticated, redirect to login page
+    }
+};
+
+
+
 
 // get the subject list
 let list = ["Fictional", "Health", "Mystery", "Thriller", "History", "CS"];
@@ -114,56 +139,6 @@ app.post("/signup", async (req, res) => {
         return res.render("signup", { same: "ok" });
     }
 });
-// app.post("/signin", async (req, res) => {
-//     console.log("I am here int the index/signin!");
-//     const id = req.body;
-//     if (id.gmail && id.password) {
-//         const user = await Data.findOne({ gmail: id.gmail });
-
-//         if (user) {
-//             if (id.password === user.password) {
-
-//                 loggedinCredentials.emailOfUser = id.gmail;
-//                 loggedinCredentials.passwordOfUser = id.password;
-//                 if (user.cat === "c") {
-
-//                     loggedinCredentials.typeOfUser = 'c';
-//                     console.log("Yes i am done , i am here!");
-//                     let result = [];
-//                     for (values in list) {
-//                         let results_book = await Book.find({ subject: list[values] }).limit(5);
-
-//                         result.push(results_book);
-
-//                     }
-//                     return res.render("home", { create: id.gmail, result: result, list: list });
-//                 }
-//                 else if (user.cat === "o") {
-//                     loggedinCredentials.typeOfUser = 'o';
-//                     return res.redirect("/owner");
-//                 }
-//                 else {
-//                     console.log("I am at the employee page!");
-//                     loggedinCredentials.typeOfUser = 'e';
-//                     try {
-//                         loggedinCredentials.typeOfUser = 'e';
-//                         return res.render("employee_page");
-//                     }
-//                     catch (error) {
-//                         console.log("Let's see the error!");
-//                         console.error("Error rendering employee_page:", error);
-//                         // Handle the error appropriately, such as rendering an error page or sending an error response
-//                         // return res.status(500).send("Internal Server Error");
-//                     }
-//                     // return res.render("employee_page");
-//                 }
-//             }
-//             return res.render("signin", { same: "no" }); // Pass local to template
-//         }
-
-//         return res.render("signin", { same: "ok" });
-//     }
-// });
 // get the about api
 app.get("/about", async (req, res) => {
     res.render("about");
@@ -176,7 +151,7 @@ app.get("/invokesign", async (req, res) => {
     console.log(req.query);
 
     try {
-        await SIGNIN(req.query.gmail, req.query.password, res);
+        await SIGNIN(req.query.gmail, req.query.password, res, req);
     } catch (error) {
         console.error("Error during sign-in:", error);
         // Handle the error appropriately
@@ -184,18 +159,23 @@ app.get("/invokesign", async (req, res) => {
     }
 });
 
-async function SIGNIN(valGmail, valPassword, res) {
+async function SIGNIN(valGmail, valPassword, res, req) {
     // console.log("I am here int the index/signin!");
     if (valGmail && valPassword) {
         console.log(`valGmail:${valGmail} and valPassword:${valPassword}`);
         // check if the user is present in the Customers Section
         let user = await Customers.findOne({ gmail: valGmail });
+        console.log(`User find in singin api is ${user}`);
         if (!user) {
+            console.log("I am here!");
             // check if is present in the Employees Section
             user = await Employees.findOne({ gmail: valGmail });
+            console.log(`User find in em api is ${user}`);
             if (!user) {
                 user = await Owners.findOne({ gmail: valGmail });
+                console.log(`User find in owner api is ${user}`);
                 if (!user) {
+                    console.log('Invalid credentials for the owner!');
                     // Invalid Credentials
                     res.render("signin", { same: "ok" });
 
@@ -205,6 +185,11 @@ async function SIGNIN(valGmail, valPassword, res) {
                     loggedinCredentials.emailOfUser = valGmail;
                     loggedinCredentials.passwordOfUser = valPassword;
                     loggedinCredentials.typeOfUser = 'o';
+                    // Set user data in session
+                    req.session.user = {
+                        username: valGmail,
+                        password: valPassword
+                    };
                     res.redirect("/owner");
                 }
             }
@@ -245,45 +230,19 @@ async function SIGNIN(valGmail, valPassword, res) {
                 res.render("signin", { same: "no" });
             }
         }
-        //     if (user && valPassword === user.password) {
-        //         loggedinCredentials.emailOfUser = valGmail;
-        //         loggedinCredentials.passwordOfUser = valPassword;
-
-        //         if (user.cat === "c") {
-
-        //             console.log("Yes i am done , i am here!");
-        //             let result = [];
-        //             for (values in list) {
-        //                 let results_book = await Book.find({ subject: list[values] }).limit(5);
-        //                 result.push(results_book);
-        //             }
-        //             res.render("home", { create: valGmail, result: result, list: list });
-        //         } else if (user.cat === "o") {
-        //             loggedinCredentials.typeOfUser = 'o';
-        //             res.redirect("/owner");
-        //         } else {
-        //             console.log("I am at the employee page!");
-        //             loggedinCredentials.typeOfUser = 'e';
-        //             // search all the curr_ordered books and pass it to the employee page
-        //             const book = await curr_Ordered_books.find();
-        //             // console.log(`From the index.js file ${book[0].price}`);
-        //             res.render("employee_page", { books: book });
-        //         }
-        //     } else {
-        //         res.render("signin", { same: "no" });
-        //     }
-        // } else {
-        //     res.render("signin", { same: "ok" });
-        // }
     }
 }
 
-// get the owner page
-app.get("/owner", async (req, res) => {
-    console.log("not ok");
+// 5th April codes
 
-    return res.render("owner", { message: "" });
+// Route to render owner page
+app.get("/owner", isAuthenticated, async (req, res) => {
+    // Render owner page view using EJS
+    console.log("Am i getting triggered!");
+    res.render("owner", { message: "" });
 });
+
+
 // api to render the image of single page
 app.get("/bookpage", async (req, res) => {
     console.log(req.body);
@@ -309,25 +268,63 @@ app.get("/employee", async (req, res) => {
     return res.render("employee_page", { books: book, empGmail: loggedinCredentials.emailOfUser, empPassword: loggedinCredentials.passwordOfUser, Employees, Book });
 })
 
-// app.post("/owner", async (req, res) => {
-//     const id = req.body;
-//     if (id.gmail && id.password) {
-//         const user = await Data.findOne({ gmail: id.gmail });
 
-//         if (!user) {
-//             const result = await Data.create({ gmail: id.gmail, password: id.password, cat: "e" });
-//             console.log(result);
-//             return res.redirect("/owner")
-//         }
-//     }
-//     if (id.gmail1) {
-//         const user = await Data.findOneAndDelete({ gmail: id.gmail1 });
-//         return res.redirect("/owner");
-//     }
-//     if (id.book) {
+// api to order all the requested books
+app.post("/order-all-books", async (req, res) => {
+    // /get all the books from the requestedbooks and push them all to the books section
+    let reqbook = await requestedbook.find();
+    // push all the book to book section
+    let isbnval = 12345687;
+    for (let i = 0; i < reqbook.length; i++) {
+        // create a book
+        Book.create({ title: reqbook[i].title, author: reqbook[i].author, ISBN: toString(isbnval + 1) });
+    }
+    res.redirect("/owner");
+});
 
-//     }
-// });
+// api to see the buisness data
+app.get("/view-business-data", async (req, res) => {
+    // get the date,month and year
+    const date = req.query.date;
+    const month = req.query.month;
+    const year = req.query.year;
+
+    if (date && month && year) { // If all three are given
+        const bookFallenBelowThreshold = await BookSolds.find({ date: date, year: year, month: month }); // Searching with respect to both year, date, and month
+        let totalamount = 0;
+        bookFallenBelowThreshold.forEach((book, index) => {
+            totalamount = totalamount + book.price;
+        });
+
+
+        console.log(bookFallenBelowThreshold);
+        res.render("accounts", { books: bookFallenBelowThreshold, total: totalamount });
+    } else {
+        if (month && year) { // If only month and year are given
+            const bookFallenBelowThreshold = await BookSolds.find({ year: year, month: month });
+            let totalamount = 0;
+            bookFallenBelowThreshold.forEach((book, index) => {
+                totalamount = totalamount + book.price;
+            });
+            console.log(bookFallenBelowThreshold);
+            res.render("accounts", { books: bookFallenBelowThreshold, total: totalamount });
+        } else {
+            if (year) { // If only year is given
+                const bookFallenBelowThreshold = await BookSolds.find({ year: year });
+                console.log(bookFallenBelowThreshold);
+                let totalamount = 0;
+                bookFallenBelowThreshold.forEach((book, index) => {
+                    totalamount = totalamount + book.price;
+                });
+                res.render("accounts", { books: bookFallenBelowThreshold, total: totalamount });
+            } else { // If neither year, month, nor date are given
+                res.redirect("/owner");
+            }
+        }
+    }
+});
+
+
 app.get("/allbooks", async (req, res) => {
     const subject = req.query.subject;
     console.log(subject);
@@ -335,7 +332,7 @@ app.get("/allbooks", async (req, res) => {
 
     console.log(result);
 
-    return res.render("allbooks", { subject: subject, result: result })
+    return res.render("allbooks", { create: loggedinCredentials.emailOfUser, subject: subject, result: result })
 });
 app.get("/singlebook", async (req, res) => {
     const book = req.query.book;
@@ -343,18 +340,10 @@ app.get("/singlebook", async (req, res) => {
 });
 
 // define the search method
-// define the search method
 app.get("/search", async (req, res) => {
 
     // get the title name or the author name of the book 
     let inputval = req.query.query;
-    // console.log("_________________________________________________________________________\n");
-    // console.log(book_title_name);
-    // console.log("_________________________________________________________________________\n");
-    // Find the books now
-    // res.send("I have found the books!");
-    // try {
-    // get the search Type
     let search_basis = req.query.searchType;
     console.log(`The query is ${inputval} and the search_basis is ${search_basis}`);
     let book_details = [];//get init with empty string
@@ -368,28 +357,15 @@ app.get("/search", async (req, res) => {
 
     //if book is not available
     if (book_details.length == 0) {
-        // create one more page that asks the user details of the books
-        // return res.render("askDetails");
         if (search_basis == "title")
             return res.render("confirmRequest", { title: inputval });
         else
             return res.render("confirmRequest", { author: inputval });
     }
-    // }
-    // catch (error) {
-    //     console.log("Some error is there!");
-    //     console.log(error);
-    //     return res.send("I couldn't get your books because of some error!");
-    // }
-
-    // render the details to an .ejs file
-    // console.log("_________________________________________________________________________\n");
-    // console.log(book_title_name);
-    // console.log("_________________________________________________________________________\n");
     else {
         return res.render("singlebook", { books: book_details });
     }
-    // return res.send("Hello , I have found your book!");
+
 });
 
 
@@ -719,9 +695,12 @@ app.post("/order_req_book", async (req, res) => {
     console.log("_______________________");
     // console.log(Book.find({ title: req.body.title }));
     await Book.create({ title: req.body.title, author: req.body.author, ISBN: req.body.ISBN, price: req.body.price, frequency: req.body.quantity });
-    console.log("Done");
-    console.log("HI");
     res.sendStatus(200);
+
+})
+
+// api to add the book-requested by owner or employee
+app.post("/book-request",async(req,res)=>{
 
 })
 
@@ -761,4 +740,4 @@ app.get("/inspectcs", async (req, res) => {
 }
 )
 
-app.listen(PORT, () => console.log("server started"));
+app.listen(PORT, async () => console.log("server started"));

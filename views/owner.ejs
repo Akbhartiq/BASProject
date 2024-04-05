@@ -16,11 +16,11 @@
             background-blend-mode: overlay;
             z-index: -1;
             background-image: url("./blue-cyan-minimalism-gradient-wallpaper-preview\ \(1\).jpg");
-            
+
         }
-        
-        
-        
+
+
+
         /* Container styling */
         .container {
             max-width: 1200px;
@@ -263,13 +263,13 @@
         .button-container {
             display: grid;
             justify-content: space-between;
-            align-items:flex-start;
+            align-items: flex-start;
             margin-top: 20px;
         }
 
         /* Button styling */
         .button-container button {
-           
+
             padding: 10px;
             background-color: #007bff;
             color: #fff;
@@ -278,20 +278,23 @@
             cursor: pointer;
             margin: 0.3cm;
             width: 10cm;
-            
+
         }
 
         .button-container button:hover {
-            background-color: #0056b3; /* Change background color on hover */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Change shadow effect on hover */
+            background-color: #0056b3;
+            /* Change background color on hover */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            /* Change shadow effect on hover */
         }
 
         label {
             color: rgb(255, 255, 255);
             font-size: xx-large;
         }
-         /* Navigation Bar Styles */
-         nav {
+
+        /* Navigation Bar Styles */
+        nav {
             background-color: #333;
             /* Background color of the navigation bar */
             padding: 10px 20px;
@@ -331,8 +334,8 @@
 </head>
 
 <body>
-     <!-- Navigation Bar -->
-     <nav>
+    <!-- Navigation Bar -->
+    <nav>
         <ul>
             <li><a href="/">Home</a></li>
             <li><a href="/about">About</a></li>
@@ -373,13 +376,19 @@
                         </form>
                     </div>
                     <!-- Section for business data -->
-                    <div class="card" style="background-image: url('');">
+                    <div class="card" style="background-image: url('')">
                         <h2>Business Data</h2>
-                        <form class="form" action="/view-business-data" method="GET">
+                        <form class="form" action="/view-business-data" method="get">
+                            <!-- Inputs for year, month, and date -->
+                            <input type="number" name="year" placeholder="Year" required />
+                            <input type="number" name="month" placeholder="Month" required />
+                            <input type="number" name="date" placeholder="Date" required />
+
+                            <!-- Submit button -->
                             <button type="submit">View Business Data</button>
                         </form>
                         <form class="form" action="/view-books-below-threshold" method="GET">
-                            <input type="number" name="threshold" placeholder="Threshold" required>
+                            <input type="number" name="threshold" placeholder="Threshold" required />
                             <button type="submit">View Books Below Threshold</button>
                         </form>
                     </div>
@@ -387,7 +396,7 @@
                     <div class="card" style="background-image: url('');">
                         <h2>Book Requests</h2>
                         <form class="form" action="/book-request" method="POST">
-                            <input type="text" name="book_name" placeholder="Book Name" required>
+                            <input type="text" placeholder="Title" id="titleInput" required>
                             <button type="submit">Submit Request</button>
                         </form>
                     </div>
