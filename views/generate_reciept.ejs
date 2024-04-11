@@ -71,6 +71,11 @@
             margin-top: 20px;
         }
 
+        .emseller {
+            display: none;
+            font-weight: bold;
+        }
+
         /* Navigation Bar Styles */
         nav {
             background-color: #333;
@@ -125,6 +130,12 @@
     <div class="receipt">
         <h1>Receipt</h1>
         <div class="receipt-item">
+            <label>Date:</label>
+            <span>
+                <%=todayDate%>
+            </span>
+        </div>
+        <div class="receipt-item">
             <label>Title:</label>
             <span>
                 <%= title %>
@@ -137,14 +148,25 @@
             </span>
         </div>
         <div class="receipt-item">
-            <label>Price:</label>
+            <label>Price/book:</label>
             <span>₹<%= price %>/-</span>
+        </div>
+        <div class="receipt-item">
+            <label>Count:</label>
+            <span><%= count %>/-</span>
         </div>
         <div class="receipt-item">
             <label>ISBN:</label>
             <span>
                 <%= isbn %>
             </span>
+        </div>
+        <div class="receipt-item">
+            <label>Total Amount:</label>
+            <span>₹<%= price*count %>/-</span>
+        </div>
+        <div class="emseller" id="seller">
+            Seller:
         </div>
     </div>
 
@@ -156,21 +178,33 @@
     <script>
         let isbnCheckInterval; // Declare a variable to hold the interval ID
 
-        function printReceipt() {
+        async function printReceipt() {
             window.print();
+            try {
+                const response = await fetch('/update_receipt_status?isbn=<%=isbn%>&cust=<%=customId%>');
+                console.log(response);
+                const data = await response.json();
+                console.log(data);
+            }
+            catch (error) {
+                console.error('Error updating receipt status: ', error);
+            }
+
         }
 
         // Function to check if ISBN is deleted
         async function checkISBNDeleted() {
             try {
                 // Perform an AJAX request to check if the ISBN is deleted
-                const response = await fetch(`/check_isbn_deleted?isbn=<%= isbn %>`);
+                const response = await fetch(`/check_isbn_deleted?isbn=<%= isbn %>&cust=<%= customId %>`);
                 console.log(response);
                 const data = await response.json();
                 console.log(data);
                 if (data.isDeleted) {
                     // If ISBN is deleted, show the print button
                     document.getElementById('printButton').style.display = 'block';
+                    document.getElementById('seller').style.display = 'block';
+                    document.getElementById("seller").innerText += data.seller;
                     // Clear the interval since ISBN is deleted
                     clearInterval(isbnCheckInterval);
                 }

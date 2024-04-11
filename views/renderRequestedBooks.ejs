@@ -163,7 +163,7 @@
 
         /* Navigation Bar Styles */
         nav {
-            background-color: #a9a9a9;
+            background-color: #333;
             /* Background color of the navigation bar */
             padding: 10px 20px;
             /* Padding around the navigation links */
@@ -176,6 +176,7 @@
             /* Remove default bullet points */
             margin: 0;
             padding: 0;
+            margin-left: 10px;
         }
 
         nav ul li {
@@ -227,14 +228,13 @@
                         </p>
                         <p>Subject: <%= book.subject %>
                         </p>
+                        <p>Price: ₹<%=book.price%>
+                        </p>
                     </div>
                     <div class="action-buttons">
                         <!-- Ignore Button -->
                         <a href="#" class="ignore-button"
                             onclick="ignoreBook('<%= book._id %>', '<%= index %>')">Ignore</a>
-                        <!-- Search Button -->
-                        <a href="#" class="search-button"
-                            onclick="searchOnline('<%= book.title %>', '<%= book.author %>')">Search Online</a>
                         <!-- Order Button -->
                         <a href="#" class="order-button" onclick="showOrderDialogue('<%= index %>')">Place Order</a>
                     </div>
@@ -242,7 +242,7 @@
                     <div class="dialog-box" id="dialog<%= index %>">
                         <input type="number" id="quantity<%= index %>" placeholder="Enter quantity" min="1" required>
                         <button
-                            onclick="orderBook('<%= book.title %>', '<%= book.author %>','<%=index%>')">Confirm</button>
+                            onclick="orderBook('<%= book.title %>', '<%= book.author %>','<%=book.subject%>','<%=book.count%>','<%=book.ISBN%>','<%=book.image_url_l%>','<%=book.price%>','<%=index%>')">Confirm</button>
                     </div>
                 </div>
                 <% }); %>
@@ -267,20 +267,16 @@
             }
         }
 
-        /* Function to search for books online */
-        async function searchOnline(title, author) {
-            window.location.href = `/search-online?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
-        }
 
         /* Function to display the dialogue box for placing order */
-        function showOrderDialogue(index) {
+        async function showOrderDialogue(index) {
             const dialogBox = document.getElementById('dialog' + index);
             dialogBox.style.display = 'block';
         }
 
 
         /* Function to order the book */
-        async function orderBook(title, author, index) {
+        async function orderBook(titleval, authorval, subjectval, countval, ISBNval, imageval, priceval, index) {
             const quantity = document.getElementById('quantity' + index).value;
             console.log(`I have called You!`);
             console.log(quantity);
@@ -296,11 +292,13 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        title: title,
-                        author: author,
-                        ISBN: 1234567890,
+                        title: titleval,
+                        author: authorval,
+                        ISBN: ISBNval,
                         quantity: quantity,
-                        price: randomInt
+                        price: priceval,
+                        image: imageval,
+                        subject: subjectval,
                     })
                 });
                 if (response.ok) {
@@ -308,6 +306,7 @@
                     // Hide the dialogue box after ordering
                     document.getElementById('dialog' + index).style.display = 'none';
                     // You can also perform any other actions here, such as showing a success message
+                    window.location.reload();
                 } else {
                     console.error('Failed to order book:', response.statusText);
                     // Handle failed request

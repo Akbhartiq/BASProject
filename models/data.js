@@ -20,17 +20,40 @@ const customerSchema = new mongoose.Schema(
           seller: String,
           copies: Number,
           price: Number,
-          ISBN:String
+          ISBN: String,
+          title: String,
+          author: String,
+          flag:
+          {
+            type: Boolean,
+            default: false,
+          },
+          receipt:
+          {
+            type: Boolean,
+            default: false,
+          }
         }
       ],
     booksrequested:
     {
       type: mongoose.Schema.Types.Mixed,
+    },
+    address:
+    {
+      type: String,
+    },
+    fullname:
+    {
+      type: String,
+    },
+    phonenumber:
+    {
+      type: Number,
     }
   });
 
 // Define the Employee Schema
-
 const employeeSchema = new mongoose.Schema({
   gmail:
   {
@@ -54,9 +77,21 @@ const employeeSchema = new mongoose.Schema({
         buyer: String,
         copies: Number,
         price: Number,
-        ISBN:String,
+        ISBN: String,
       }
     ],
+  address:
+  {
+    type: String,
+  },
+  fullname:
+  {
+    type: String,
+  },
+  phonenumber:
+  {
+    type: Number,
+  }
 })
 
 // Define the owner Schema
@@ -140,15 +175,52 @@ const requestedBookSchema = new mongoose.Schema({
   },
   subject: {
     type: String,
-    default: ""
+    required: true,
   },
   count: {
     type: Number,
     default: 1,
   },
   customerid:
+    [
+      {
+        gmail: String,
+      }
+    ],
+  ISBN:
   {
-    type: mongoose.Schema.Types.Mixed,
+    type: String,
+    required: true,
+  },
+  image_url_l:
+  {
+    type: String,
+    required: true,
+  },
+  image_url_s:
+  {
+    type: String,
+    default: "",
+  },
+  image_url_m:
+  {
+    type: String,
+    default: "",
+  },
+  price:
+  {
+    type: Number,
+    required: true,
+  },
+  location:
+  {
+    type: String,
+    default: "Not Present",
+  },
+  publication_date:
+  {
+    type: String,
+    default: "",
   }
 });
 
@@ -167,7 +239,7 @@ const currentorderedbookschema = new mongoose.Schema({
     type: String,
     default: ""
   },
-  no_Of_Copies_Asked: {
+  count: {
     type: Number,
     default: 1,
   },
@@ -261,14 +333,72 @@ const bookSoldsSchema = new mongoose.Schema({
   }
 })
 
+// create the schema for the ordered_book
+const order_book = new mongoose.Schema({
+  title:
+  {
+    type: String,
+    required: true,
+  },
+  author:
+  {
+    type: String,
+    required: true,
+  },
+  ISBN:
+  {
+    type: String,
+    required: true,
+  },
+  subject:
+  {
+    type: String,
+    required: true,
+  },
+  image_url_l:
+  {
+    type: String,
+    default: "",
+  },
+  image_url_m:
+  {
+    type: String,
+    default: "",
+  },
+  image_url_s:
+  {
+    type: String,
+    default: "",
+  },
+  publication_date:
+  {
+    type: String,
+    default: "0000-00-00",
+  },
+  price:
+  {
+    type: Number,
+    default: 1000,
+  },
+  frequency:
+  {
+    type: Number,
+    default: 1,
+  },
+  location:
+  {
+    type: String,
+    default: "Not present",
+  }
+})
+
 // Get the models here
 const curr_Ordered_books = mongoose.model("currorderedbook", currentorderedbookschema);
-
 const requestedbook = mongoose.model("requestedbook", requestedBookSchema);
-
 const Book = mongoose.model("book", book);
 const BookSolds = mongoose.model("booksboughts", bookSoldsSchema);
 const Customers = mongoose.model("customer", customerSchema);
 const Employees = mongoose.model("employees", employeeSchema);
 const Owners = mongoose.model("Owners", ownerSchema);
-module.exports = { Book, requestedbook, curr_Ordered_books, Customers, Employees, Owners, BookSolds };
+const OrderedBook = mongoose.model("orderbooks", order_book);
+module.exports = { Book, requestedbook, curr_Ordered_books, Customers, Employees, Owners, BookSolds, OrderedBook };

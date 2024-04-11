@@ -175,7 +175,8 @@
             <div class="book-card" data-title="<%= book.get("title") %>"
                 data-author="<%= book.get("author") %>"
                     data-price="<%= book.get("price") %>"
-                        data-isbn="<%= book.get("ISBN") %>">
+                        data-isbn="<%= book.get("ISBN") %>"
+                        data-freq="<%=book.get("frequency")%>">
                             <div class="book-details">
                                 <div class="book-title-container">
                                     <h2 class="book-title">
@@ -197,14 +198,23 @@
                                 <p class="book-info"><b>Copies Available:</b>
                                     <%= book.get("frequency") %>
                                 </p>
+                                <p class="book-info">
+                                    <b>Location:
+                                        <%=book.get("location_id")%>
+                                    </b>
+                                </p>
                                 <p class="book-price">₹<%= book.get("price") %>/-</p>
+
                                 <form id="orderForm" onsubmit="submitForm(event)">
                                     <input type="hidden" id="titleInput" name="title">
                                     <input type="hidden" id="authorInput" name="author">
                                     <input type="hidden" id="priceInput" name="price">
                                     <input type="hidden" id="isbnInput" name="isbn">
+                                    <input type="hidden" id="copiesAvalable" name="freq" value="<%= book.get("frequency")%>">
                                     <button type="submit" class="submit-button">Purchase</button>
                                 </form>
+
+
                             </div>
             </div>
             <% if ((index + 1) % 2===0) { %>
@@ -213,9 +223,79 @@
                     <% }) %>
     </div>
     <script>
+
+        async function parseLocation(location_id) {
+            let response_str = "Hall";
+            switch (location_id.substring(0, 2)) {
+                case "CS":
+                    response_str += " computer science\n ";
+                    break;
+                case "HI":
+                    response_str += " History\n ";
+                case "HL":
+                    response_str += " Health\n ";
+                case "FI":
+                    response_str += " fictional\n ";
+                case "TH":
+                    response_str += " Thriller\n ";
+                case "MY":
+                    response_str += " Mystery\n ";
+            }
+            response_str += "Row: " + location_id.substring(3, 4) + "\n";
+            response_str += "Col: " + location_id.substring(5, 6) + "\n";
+            response_str += "section: " + location_id.substring(7, 8) + "\n";
+            response_str += "Number: " + location_id.substring(9, 10) + "\n";
+            return response_str;
+
+        }
+        async function openPurchaseDialog() {
+            // Get the number of books the user wants to purchase
+            const numberOfBooksStr = prompt("How many books do you want to purchase?", "1");
+
+            // If the user clicks Cancel or doesn't enter a value, return null
+            if (numberOfBooksStr === null || numberOfBooksStr.trim() === "") {
+                return null;
+            }
+
+            // Convert the string to an integer
+            const numberOfBooks = parseInt(numberOfBooksStr);
+
+            // If the entered value is not a valid number, return null
+            if (isNaN(numberOfBooks)) {
+                return null;
+            }
+
+            // Show a confirmation dialog
+            const confirmation = confirm(`You are about to purchase ${numberOfBooks} book(s). Are you sure?`);
+
+
+            // If the user clicks OK, return the number of books
+            if (confirmation) {
+                return numberOfBooks;
+            } else {
+                return null; // User canceled the confirmation
+            }
+        }
+
+
+
         async function submitForm(event) {
+            console.log("April7");
+            const count = await openPurchaseDialog();
+            //let's check if the count is more than stock
+            console.log("Let's print the count!");
+            console.log(count);
             event.preventDefault();
             const bookCard = event.target.closest('.book-card');
+            console.log(bookCard.dataset.freq, "iamfreq");
+            if (count > parseInt(bookCard.dataset.freq)) {
+                // Display a message at the top of the website
+                const errorMessage = document.createElement('div');
+                errorMessage.classList.add('alert', 'alert-danger');
+                errorMessage.textContent = "We don't have those many copies, if you wish you can request more copies!";
+                document.body.insertBefore(errorMessage, document.body.firstChild);
+                return; // Exit from the function
+            }
 
             console.log(`BookCard is ${bookCard}`);
             console.log(`Dataset is ${bookCard.dataset}`);
@@ -239,11 +319,12 @@
                 title: title,
                 author: author,
                 price: price,
-                isbn: isbn
+                isbn: isbn,
+                count: count,
             });
 
             try {
-                const url = `/save_to_currordered_books?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&price=${encodeURIComponent(price)}&isbn=${encodeURIComponent(isbn)}`;
+                const url = `/save_to_currordered_books?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&price=${encodeURIComponent(price)}&isbn=${encodeURIComponent(isbn)}&count=${encodeURIComponent(count)}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
@@ -252,7 +333,7 @@
                 });
                 if (response.ok) {
                     // Construct the URL with query parameters
-                    const receiptUrl = `/get_receipt?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&price=${encodeURIComponent(price)}&isbn=${encodeURIComponent(isbn)}`;
+                    const receiptUrl = `/get_receipt?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&price=${encodeURIComponent(price)}&isbn=${encodeURIComponent(isbn)}&count=${encodeURIComponent(count)}`;
                     // Navigate to the receipt page with the constructed URL
                     window.location.href = receiptUrl;
                 } else {
@@ -262,6 +343,7 @@
                 console.error('Error submitting form:', error);
             }
         }
+
     </script>
 </body>
 

@@ -15,6 +15,13 @@
             /* Hide horizontal scrollbar */
         }
 
+        .total-revenue {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: right;
+        }
+
         h1 {
             text-align: center;
             margin-bottom: 20px;
@@ -55,8 +62,9 @@
             max-height: 500px;
             overflow-y: auto;
         }
-         /* Navigation Bar Styles */
-         nav {
+
+        /* Navigation Bar Styles */
+        nav {
             background-color: #333;
             /* Background color of the navigation bar */
             padding: 10px 20px;
@@ -115,34 +123,43 @@
                         <th>Day</th>
                         <th>Books Sold</th>
                         <th>Who Sold</th>
+                        <th>Buyer</th>
                         <th>Price</th>
                         <th>Number of Copies</th>
                         <th>Total Revenue</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <% soldbooks.forEach(book=> { %>
-                        <tr>
-                            <td>
-                                <%= book.currdate %>
-                            </td>
-                            <td>
-                                <%= book.title %>
-                            </td>
-                            <td>
-                                <%= book.details.seller %>
-                            </td>
-                            <td>$<%= book.price %>
-                            </td>
-                            <td>
-                                <%= book.frequency %>
-                            </td>
-                            <td>$<%= book.price * book.frequency %>
-                            </td>
-                        </tr>
-                        <% }); %>
+                    <% let totalRevenue=0; %>
+                        <% soldbooks.forEach(book=> { %>
+                            <tr>
+                                <td>
+                                    <%= book.currdate %>
+                                </td>
+                                <td>
+                                    <%= book.title %>
+                                </td>
+                                <td>
+                                    <%= book.details.Seller %>
+                                </td>
+                                <td>
+                                    <%=book.details.Buyer%>
+                                </td>
+                                <td>$<%= book.price %>
+                                </td>
+                                <td>
+                                    <%= book.frequency %>
+                                </td>
+                                <td>$<%= book.price * book.frequency %>
+                                </td>
+                            </tr>
+                            <% totalRevenue +=book.price * book.frequency; %>
+                                <% }); %>
                 </tbody>
             </table>
+            <div class="total-revenue">Total Revenue: $<%= totalRevenue.toFixed(2) %>
+            </div>
+
         </div>
     </div>
 </body>

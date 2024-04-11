@@ -28,6 +28,7 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 325px;
+            margin-top: 30px;
         }
 
 
@@ -36,6 +37,7 @@
             color: #fff;
             text-align: center;
             margin-bottom: 20px;
+            margin-top: 20px;
         }
 
         .login-container:hover {
@@ -86,6 +88,23 @@
             color: red;
         }
 
+        .newcont {
+            text-align: center;
+        }
+
+        .signup-form button {
+
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .signup-form button:hover {
+            background-color: #0056b3;
+        }
+
         /* Navigation Bar Styles */
         nav {
             background-color: #333;
@@ -100,6 +119,7 @@
             width: 100%;
             z-index: 999;
             /* Ensure the nav bar is above other content */
+
         }
 
         nav ul {
@@ -165,6 +185,17 @@
                             </div>
                             <button type="submit">Login</button>
                         </form>
+
+
+                    </div>
+                    <div class="newcont">
+                        <h3>New User?</h3>
+
+                        <form class="signup-form" action="/signup" method="post">
+                            <!-- Add your form elements here if needed -->
+                            <button type="submit" style="width:30%">Signup</button>
+
+                    </div>
                     </div>
 </body>
 

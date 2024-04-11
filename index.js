@@ -9,7 +9,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session')
 
 // get the  schema here
-const { Book, requestedbook, curr_Ordered_books, Customers, Employees, Owners, BookSolds } = require("./models/data.js");
+const { Book, requestedbook, curr_Ordered_books, Customers, Employees, Owners, BookSolds, OrderedBook } = require("./models/data.js");
 
 // get the mongoose
 const mongoose = require('mongoose');
@@ -81,7 +81,36 @@ app.set("view engine", "ejs");
 app.set("views", path.resolve("./views"));
 
 app.use(express.urlencoded({ extended: true }));
+
 app.use(express.static("views"));
+
+// function to get the current Date from the System
+async function getCurrDate() {
+    // Create a new Date object
+    const currentDate = new Date();
+
+    // Get the current date components
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1; // Months are zero-indexed, so add 1
+    const day = currentDate.getDate();
+    const hours = currentDate.getHours();
+    const minutes = currentDate.getMinutes();
+    const seconds = currentDate.getSeconds();
+
+    // Format the date as needed
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // Display the current date
+    console.log(formattedDate);
+    return formattedDate;
+
+}
+
+// april 10th code
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something went wrong!');
+});
 
 app.get("/", async (req, res) => {
     let result = [];
@@ -91,7 +120,8 @@ app.get("/", async (req, res) => {
         result.push(results_book);
 
     }
-    return res.render("home", { result: result, list: list });
+    console.log("Inside home ", loggedinCredentials.emailOfUser);
+    return res.render("home", { create: loggedinCredentials.emailOfUser, result: result, list: list, type: loggedinCredentials.typeOfUser });
 });
 
 // build the signin api (in get format)
@@ -122,7 +152,11 @@ app.post("/signup", async (req, res) => {
 
         // if the requeste gmail is not present any section 
         if (!user) {
-            const result1 = await Customers.create({ gmail: id.gmail, password: id.password });
+            const result1 = await Customers.create({
+                gmail: id.gmail, password: id.password, address: id.address,
+                phonenumber: id.phonenumber,
+                fullname: id.fullname,
+            });
             loggedinCredentials.emailOfUser = id.gmail;
             loggedinCredentials.passwordOfUser = id.password;
             loggedinCredentials.typeOfUser = 'c';
@@ -133,7 +167,7 @@ app.post("/signup", async (req, res) => {
                 result.push(results_book);
 
             }
-            return res.render("home", { create: id.gmail, list: list, result: result }); // Pass local to template
+            return res.render("home", { create: id.gmail, list: list, result: result, type: "c" }); // Pass local to template
         }
 
         return res.render("signup", { same: "ok" });
@@ -181,16 +215,21 @@ async function SIGNIN(valGmail, valPassword, res, req) {
 
                 }
                 else {
-                    // Owner
-                    loggedinCredentials.emailOfUser = valGmail;
-                    loggedinCredentials.passwordOfUser = valPassword;
-                    loggedinCredentials.typeOfUser = 'o';
-                    // Set user data in session
-                    req.session.user = {
-                        username: valGmail,
-                        password: valPassword
-                    };
-                    res.redirect("/owner");
+                    if (valPassword == user.password) {// Owner
+                        loggedinCredentials.emailOfUser = valGmail;
+                        loggedinCredentials.passwordOfUser = valPassword;
+                        loggedinCredentials.typeOfUser = 'o';
+                        // Set user data in session
+                        req.session.user = {
+                            username: valGmail,
+                            password: valPassword
+                        };
+                        res.redirect("/owner");
+                    }
+                    else {
+                        // Invalid Credentials
+                        res.render("signin", { same: "no" });
+                    }
                 }
             }
             else {
@@ -223,7 +262,7 @@ async function SIGNIN(valGmail, valPassword, res, req) {
                     let results_book = await Book.find({ subject: list[values] }).limit(5);
                     result.push(results_book);
                 }
-                res.render("home", { create: valGmail, result: result, list: list });
+                res.render("home", { create: valGmail, result: result, list: list, type: "c" });
             }
             else {
                 // Invalid Credentials
@@ -232,6 +271,19 @@ async function SIGNIN(valGmail, valPassword, res, req) {
         }
     }
 }
+
+// 8th april codes
+app.get("/logoutem", async (req, res) => {
+    let result = [];
+    for (values in list) {
+        let results_book = await Book.find({ subject: list[values] }).limit(5);
+
+        result.push(results_book);
+
+    }
+    loggedinCredentials = {};
+    res.render("home", { create: "", type: "", result: result, list: list });
+})
 
 // 5th April codes
 
@@ -265,22 +317,98 @@ app.get("/employee", async (req, res) => {
     const book = await curr_Ordered_books.find();
     console.log(typeof (book));
     // get id and gmail
-    return res.render("employee_page", { books: book, empGmail: loggedinCredentials.emailOfUser, empPassword: loggedinCredentials.passwordOfUser, Employees, Book });
+    return res.render("employee_page", { message: "", books: book, empGmail: loggedinCredentials.emailOfUser, empPassword: loggedinCredentials.passwordOfUser, Employees, Book });
 })
 
+// api to see the inventory
+app.get('/api/inventory', async (req, res) => {
+    // fetch all the OrderBooks
+    console.log('Hi , i am inside the /api/inventory function');
+    const fetchedOrderBooks = await OrderedBook.find();
+    console.log(fetchedOrderBooks);
+    res.json(fetchedOrderBooks);
+})
 
 // api to order all the requested books
 app.post("/order-all-books", async (req, res) => {
     // /get all the books from the requestedbooks and push them all to the books section
     let reqbook = await requestedbook.find();
     // push all the book to book section
-    let isbnval = 12345687;
     for (let i = 0; i < reqbook.length; i++) {
+        // first check if the book is already orderd
+        const ifBookAlreadyOrdered = await OrderedBook.findOne({ title: reqbook[i] });
         // create a book
-        Book.create({ title: reqbook[i].title, author: reqbook[i].author, ISBN: toString(isbnval + 1) });
+        if (!ifBookAlreadyOrdered) {
+            await OrderedBook.create(
+                {
+                    title: reqbook[i].title,
+                    author: reqbook[i].author,
+                    ISBN: reqbook[i].ISBN,
+                    image_url_l: reqbook[i].image_url_l,
+                    image_url_s: reqbook[i].image_url_l,
+                    image_url_m: reqbook[i].image_url_l,
+                    price: reqbook[i].price,
+                    frequency: reqbook[i].count,
+                    publication_date: reqbook[i].publication_date,
+                    subject: reqbook[i].subject,
+                });
+        }
+        else {
+            await OrderedBook.findOneAndUpdate
+                (
+                    { title: reqbook[i].title },
+                    {
+                        $inc: { frequency: reqbook[i].count },
+                    },
+                    {
+                        returnOriginal: false,
+                    }
+                )
+        }
     }
     res.redirect("/owner");
 });
+
+// api to order all the books below thresolds
+app.post("/order-all-books-below-thresolds", async (req, res) => {
+    // get the parameters from the api
+    let Tobeadded = req.body.quantityTobeAdded;
+    let Thresold = req.body.threshold;
+    let bookBelowThresold = await Book.find({ frequency: { $lt: Thresold } });
+    for (let i = 0; i < bookBelowThresold.length; i++) {
+        // get all the books and push to orderd books for more copies
+        // first check if the book is already orderd
+        const ifBookAlreadyOrdered = await OrderedBook.findOne({ title: bookBelowThresold[i] });
+        // create a book
+        if (!ifBookAlreadyOrdered) {
+            await OrderedBook.create(
+                {
+                    title: bookBelowThresold[i].title,
+                    author: bookBelowThresold[i].author,
+                    ISBN: bookBelowThresold[i].ISBN,
+                    image_url_l: bookBelowThresold[i].image_url_l,
+                    image_url_s: bookBelowThresold[i].image_url_l,
+                    image_url_m: bookBelowThresold[i].image_url_l,
+                    price: bookBelowThresold[i].price,
+                    frequency: bookBelowThresold[i].count,
+                    publication_date: bookBelowThresold[i].publication_date,
+                    subject: bookBelowThresold[i].subject,
+                });
+        }
+        else {
+            await OrderedBook.findOneAndUpdate
+                (
+                    { title: bookBelowThresold[i].title },
+                    {
+                        $inc: { frequency: reqbook[i].count },
+                    },
+                    {
+                        returnOriginal: false,
+                    }
+                )
+        }
+    }
+})
 
 // api to see the buisness data
 app.get("/view-business-data", async (req, res) => {
@@ -289,35 +417,118 @@ app.get("/view-business-data", async (req, res) => {
     const month = req.query.month;
     const year = req.query.year;
 
-    if (date && month && year) { // If all three are given
-        const bookFallenBelowThreshold = await BookSolds.find({ date: date, year: year, month: month }); // Searching with respect to both year, date, and month
+    if (date && month && year) {
+        // If all three are given
+        const bookFallenBelowThreshold = await BookSolds.find({
+            date: date,
+            year: year,
+            month: month,
+        }); // Searching with respect to both year, date, and month
         let totalamount = 0;
         bookFallenBelowThreshold.forEach((book, index) => {
-            totalamount = totalamount + book.price;
+            totalamount = totalamount + (book.price * book.frequency);
         });
 
-
         console.log(bookFallenBelowThreshold);
-        res.render("accounts", { books: bookFallenBelowThreshold, total: totalamount });
+        res.render("accounts", {
+            books: bookFallenBelowThreshold,
+            total: totalamount,
+        });
     } else {
-        if (month && year) { // If only month and year are given
-            const bookFallenBelowThreshold = await BookSolds.find({ year: year, month: month });
+        if (month && year) {
+            // If only month and year are given
+            const bookFallenBelowThreshold = await BookSolds.find({
+                year: year,
+                month: month,
+            });
             let totalamount = 0;
             bookFallenBelowThreshold.forEach((book, index) => {
-                totalamount = totalamount + book.price;
+                totalamount = totalamount + (book.price * book.frequency);
             });
             console.log(bookFallenBelowThreshold);
-            res.render("accounts", { books: bookFallenBelowThreshold, total: totalamount });
+            res.render("accounts", {
+                books: bookFallenBelowThreshold,
+                total: totalamount,
+            });
         } else {
-            if (year) { // If only year is given
+            if (year) {
+                // If only year is given
                 const bookFallenBelowThreshold = await BookSolds.find({ year: year });
                 console.log(bookFallenBelowThreshold);
                 let totalamount = 0;
                 bookFallenBelowThreshold.forEach((book, index) => {
-                    totalamount = totalamount + book.price;
+                    totalamount = totalamount + (book.price * book.frequency);
                 });
-                res.render("accounts", { books: bookFallenBelowThreshold, total: totalamount });
-            } else { // If neither year, month, nor date are given
+                res.render("accounts", {
+                    books: bookFallenBelowThreshold,
+                    total: totalamount,
+                });
+            } else {
+                // If neither year, month, nor date are given
+                res.redirect("/owner");
+            }
+        }
+    }
+});
+
+// to get the business data  of employ
+app.get("/view-business-data-employee", async (req, res) => {
+    // get the date,month and year
+    const gmail = req.query.gmail;
+    const date = req.query.date;
+    const month = req.query.month;
+    const year = req.query.year;
+
+    if (date && month && year) {
+        // If all three are given
+        const bookFallenBelowThreshold = await BookSolds.find({
+            date: date,
+            year: year,
+            month: month,
+            "details.Seller": gmail // Assuming gmail is a variable containing the seller's email
+        }); // Searching with respect to both year, date, and month
+        let totalamount = 0;
+        bookFallenBelowThreshold.forEach((book, index) => {
+            totalamount = totalamount + (book.price * book.frequency);
+        });
+
+        console.log(bookFallenBelowThreshold);
+        res.render("accounts", {
+            books: bookFallenBelowThreshold,
+            total: totalamount,
+        });
+    } else {
+        if (month && year) {
+            // If only month and year are given
+            const bookFallenBelowThreshold = await BookSolds.find({
+                year: year,
+                month: month,
+                "details.Seller": gmail
+            });
+            let totalamount = 0;
+            bookFallenBelowThreshold.forEach((book, index) => {
+                totalamount = totalamount + (book.price * book.frequency);
+            });
+            console.log(bookFallenBelowThreshold);
+            res.render("accounts", {
+                books: bookFallenBelowThreshold,
+                total: totalamount,
+            });
+        } else {
+            if (year) {
+                // If only year is given
+                const bookFallenBelowThreshold = await BookSolds.find({ year: year, "details.Seller": gmail });
+                console.log(bookFallenBelowThreshold);
+                let totalamount = 0;
+                bookFallenBelowThreshold.forEach((book, index) => {
+                    totalamount = totalamount + (book.price * book.frequency);
+                });
+                res.render("accounts", {
+                    books: bookFallenBelowThreshold,
+                    total: totalamount,
+                });
+            } else {
+                // If neither year, month, nor date are given
                 res.redirect("/owner");
             }
         }
@@ -325,6 +536,69 @@ app.get("/view-business-data", async (req, res) => {
 });
 
 
+// get  the history of the book 
+app.get("/history-of-book", async (req, res) => {
+    // get the date,month and year
+    const book = req.query.book;
+    const date = req.query.date;
+    const month = req.query.month;
+    const year = req.query.year;
+
+    if (date && month && year) {
+        // If all three are given
+        const bookFallenBelowThreshold = await BookSolds.find({
+            date: date,
+            year: year,
+            month: month,
+            title: book // Assuming gmail is a variable containing the seller's email
+        }); // Searching with respect to both year, date, and month
+        let totalamount = 0;
+        bookFallenBelowThreshold.forEach((book, index) => {
+            totalamount = totalamount + (book.price * book.frequency);
+        });
+
+        console.log(bookFallenBelowThreshold);
+        res.render("accounts", {
+            books: bookFallenBelowThreshold,
+            total: totalamount,
+        });
+    } else {
+        if (month && year) {
+            // If only month and year are given
+            const bookFallenBelowThreshold = await BookSolds.find({
+                year: year,
+                month: month,
+                title: book,
+            });
+            let totalamount = 0;
+            bookFallenBelowThreshold.forEach((book, index) => {
+                totalamount = totalamount + (book.price * book.frequency);
+            });
+            console.log(bookFallenBelowThreshold);
+            res.render("accounts", {
+                books: bookFallenBelowThreshold,
+                total: totalamount,
+            });
+        } else {
+            if (year) {
+                // If only year is given
+                const bookFallenBelowThreshold = await BookSolds.find({ year: year, title: book });
+                console.log(bookFallenBelowThreshold);
+                let totalamount = 0;
+                bookFallenBelowThreshold.forEach((book, index) => {
+                    totalamount = totalamount + (book.price * book.frequency);
+                });
+                res.render("accounts", {
+                    books: bookFallenBelowThreshold,
+                    total: totalamount,
+                });
+            } else {
+                // If neither year, month, nor date are given
+                res.redirect("/owner");
+            }
+        }
+    }
+});
 app.get("/allbooks", async (req, res) => {
     const subject = req.query.subject;
     console.log(subject);
@@ -389,6 +663,8 @@ app.post("/singlebook", async (req, res) => {
 // Function to get the ISBN number given the title and the author name
 const axios = require('axios');
 const { stat } = require('fs');
+const { cursorTo } = require('readline');
+const { time } = require('console');
 // const { default: mongoose } = require("mongoose");
 
 async function getISBN(title, author) {
@@ -424,14 +700,20 @@ app.post("/submit_details", async (req, res) => {
     const subOfBook = infoOfBook.subject;
     // find if the request already exists
     const ifalreadyexist = await requestedbook.findOne({ title: titleOfBook });
+    console.log('I am inside the submit_details function!')
+    console.log(ifalreadyexist);
     if (ifalreadyexist) {
-        await requestedbook.updateOne({ title: titleOfBook }, { $inc: { count: 1 } });
+        await requestedbook.updateOne({ title: titleOfBook }, { $inc: { count: 1 } }, { $push: { customerid: { gmail: loggedinCredentials.emailOfUser } } });
     }
     // now push the data to the requested_books collection
     else {
-        const new_Requested_book = await requestedbook.create({ title: titleOfBook, author: authorOfBook, genre: genre_of_book, subject: subOfBook });
+        // randomly generate the price
+        let min = 1300;
+        let max = 2000;
+        let priceVal = await Math.floor(Math.random() * (max - min)) + min;
+        const new_Requested_book = await requestedbook.create({ title: titleOfBook, author: authorOfBook, genre: genre_of_book, subject: subOfBook, ISBN: infoOfBook.isbn, image_url_l: infoOfBook.image, image_url_m: infoOfBook.image, image_url_s: infoOfBook.image, price: priceVal, customerid: [{ gmail: loggedinCredentials.emailOfUser }] });
     }
-    res.send("I am  dongin things!");
+    res.redirect("/");
 })
 
 // writing the apis which will be handling the function of the owner
@@ -499,10 +781,26 @@ app.post("/save_to_currordered_books", async (req, res) => {
             author: req.query.author,
             ISBN: req.query.isbn,
             customerid: loggedinCredentials,
-            price: req.query.price
+            price: req.query.price,
+            count: req.query.count,
         });
-
-        // Send a success response
+        // Save the data that the cutomer have requested for this book
+        await Customers.findOneAndUpdate(
+            { gmail: loggedinCredentials.emailOfUser },
+            {
+                $push: {
+                    bookspurchased: {
+                        Date: new Date().toISOString(),
+                        title: req.query.title,
+                        author: req.query.author,
+                        copies: req.query.count, // or whatever the count is
+                        price: req.query.price, // or whatever the price is
+                        ISBN: req.query.isbn,
+                        flag: false // or true, depending on your requirement
+                    }
+                }
+            }
+        );// Send a success response
         res.sendStatus(200);
     } catch (error) {
         console.error("Error saving data to curr_ordered_books:", error);
@@ -513,9 +811,63 @@ app.post("/save_to_currordered_books", async (req, res) => {
 
 // Give the get recipt function here
 app.get("/get_receipt", async (req, res) => {
+    console.log('I am inside the /get_receipt api');
     console.log(req.body);
     console.log(req.query);
-    res.render("generate_reciept", { title: req.query.title, price: req.query.price, isbn: req.query.isbn, author: req.query.author });
+    console.log(req.params);
+    const TodayDate = await getCurrDate();
+    res.render("generate_reciept", { title: decodeURIComponent(req.query.title), price: decodeURIComponent(req.query.price), isbn: decodeURIComponent(req.query.isbn), author: decodeURIComponent(req.query.author), count: decodeURIComponent(req.query.count), customId: decodeURIComponent(loggedinCredentials.emailOfUser), todayDate: TodayDate });
+})
+
+// api to update the receipt status of the customer for a book
+// Assuming you are using Express.js
+app.get('/update_receipt_status', async (req, res) => {
+    try {
+        const isbn = req.query.isbn;
+        const cid = req.query.cust;
+
+        console.log('I am inside the update_receipt status');
+        console.log(isbn);
+        console.log(cid);
+
+        // Update the receipt status
+        const updatedCustomer = await Customers.findOneAndUpdate(
+            {
+                gmail: cid,
+                "bookspurchased.ISBN": isbn,
+                "bookspurchased.receipt": false
+            },
+            {
+                $set: {
+                    "bookspurchased.$.receipt": true
+                }
+            },
+            { new: true }
+        );
+
+        if (updatedCustomer) {
+            console.log("Receipt status updated successfully:", updatedCustomer);
+            res.json({ success: true, message: "Receipt status updated successfully" });
+        } else {
+            console.log("No matching document found to update receipt status");
+            res.json({ success: false, message: "No matching document found to update receipt status" });
+        }
+    } catch (error) {
+        console.error('Error updating receipt status:', error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+});
+
+
+// Api to see the customer history
+app.get("/cust_hist", async (req, res) => {
+
+    console.log(req.query.gmail);
+    // now find the customer in the database
+    const UniqueCust = await Customers.findOne({ gmail: req.query.gmail });
+    // now render the page of history
+    console.log('I am inside the /cust_hist api , and the value of the UniqueCust is ', UniqueCust);
+    res.render("custbook", { customer: UniqueCust });
 })
 
 // Get the api to check if the book-ordered is issued by the Employee and if it so , then ISBN must be deleted form the Database// Handle request to check if ISBN is deleted
@@ -525,11 +877,18 @@ app.get('/check_isbn_deleted', async (req, res) => {
         // Here you would perform a query to your MongoDB database to check if the ISBN exists in the curr_Ordered_books collection
         console.log(req.query);
         console.log(req.body);
-        const isbnExists = await curr_Ordered_books.exists({ ISBN: req.query.isbn });
+        const isbnExists = await curr_Ordered_books.findOne({ ISBN: req.query.isbn, "customerid.emailOfUser": req.query.cust });
         console.log(isbnExists);
         console.log(req.query.isbn);
         // Send the response indicating whether the ISBN is deleted
-        res.json({ isDeleted: !isbnExists }); // If ISBN does not exist, it's considered deleted
+        if (!isbnExists) {
+            // find the same book in bookssolds
+            const forseller = await BookSolds.findOne({ ISBN: req.query.isbn, "details.Buyer": req.query.cust });
+            res.json({ isDeleted: true, seller: forseller.details.Seller }); // If ISBN does not exist, it's considered deleted
+        }
+        else {
+            res.json({ isDeleted: false });
+        }
     } catch (error) {
         console.error('Error checking ISBN:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -553,9 +912,9 @@ app.get('/get_all_books', async (req, res) => {
 
 // function to add the employee
 app.post("/add-employee", async (req, res) => {
-
     // let's create the user in the data's collection of the mongodb
     console.log(req.body);
+    const id = req.body;
     const emId = req.body.email;
     const emPassword = req.body.password;
 
@@ -568,24 +927,17 @@ app.post("/add-employee", async (req, res) => {
             ifsameid = await Employees.findOne({ gmail: emId });
         }
     }
-    // console.log(ifsameid);
-    // if (!ifsameid) {
-    //     await Employees.create({ gmail: emId, password: emPassword });
-    //     // alert("Employee added SuccessFully to the WorkForce!");
-    //     res.redirect("/owner");
-    // }
-    // else {
-    //     // alert(`This gmail Id : ${emId} already exists!`);
-    //     res.redirect("owner");
-    // }
     if (ifsameid) {
         res.render("owner", { message: "This email ID already exists!" });
     } else {
-        await Employees.create({ gmail: emId, password: emPassword });
+        await Employees.create({
+            gmail: emId, password: emPassword, address: id.address,
+            phonenumber: id.phonenumber,
+            fullname: id.fullname, salary: id.salary
+        });
         res.render("owner", { message: "Employee added successfully!" });
     }
-
-})
+});
 // Get the api for the remove-employee
 app.post("/remove-employee", async (req, res) => {
     // find and delete the employee from the database
@@ -637,13 +989,47 @@ app.get("/view-books-below-threshold", async (req, res) => {
 })
 
 // Delete book by ISBN
-app.delete('/delete-book/:isbn', async (req, res) => {
+app.delete('/delete-book/:isbn/:cid/:freqCopies', async (req, res) => {
+    console.log("I am inside the delete api with given count 9th april!")
     const isbn = req.params.isbn;
+    const custId = req.params.cid;
+    console.log(req.params);
     console.log("Here and There!");
     console.log(isbn);
+    const value = parseInt(req.params.freqCopies);
     try {
         // Find the book in curr_requested_books collection and delete it
-        let statusVal = await curr_Ordered_books.findOneAndDelete({ ISBN: isbn });
+        let statusVal = await curr_Ordered_books.findOneAndDelete({ ISBN: isbn, "customerid.emailOfUser": req.params.cid });
+        // Update the status of the book in the customer section
+        console.log("Updating the flag inside the delete function!");
+        console.log(custId);
+        // update the count of the book 
+        await Book.findOneAndUpdate(
+            { ISBN: isbn },
+            { $inc: { frequency: -value } },
+            { returnOriginal: false }
+        );
+
+        await Customers.findOneAndUpdate(
+            {
+                gmail: custId,
+                "bookspurchased.ISBN": isbn,
+                "bookspurchased.flag": false,
+            },
+            {
+                $set: {
+                    "bookspurchased.$.flag": true, // Update the flag field of the matched book
+                    "bookspurchased.$.seller": loggedinCredentials.emailOfUser,
+                }
+            },
+            { new: true }
+        )
+            .then(updatedCustomer => {
+                console.log("Flag updated successfully:", updatedCustomer);
+            })
+            .catch(err => {
+                console.log("Error updating flag:", err);
+            });
         if (statusVal) {
             // Book has been sold 
             // Get the CurrentDate
@@ -654,8 +1040,6 @@ app.delete('/delete-book/:isbn', async (req, res) => {
             const currhour = currentDate.getHours();
             // Add the books to the sold history
             await BookSolds.create({ title: statusVal.title, ISBN: statusVal.ISBN, author: statusVal.author, frequency: statusVal.no_Of_Copies_Asked, details: { Buyer: statusVal.customerid.emailOfUser, Seller: loggedinCredentials.emailOfUser }, price: statusVal.price, currdate: currentDate.toString(), year: curryear, month: currmonth, date: currdate, hours: currhour });
-            // Push to book to the Customer Database
-            await Customers.findOneAndUpdate({ gmail: statusVal.customerid.emailOfUser }, { $push: { bookspurchased: { Date: currentDate.toString(), seller: loggedinCredentials.emailOfUser, copies: statusVal.no_Of_Copies_Asked, price: statusVal.price, ISBN: statusVal.ISBN } } });
             // Push the book sold to the list of the Employees
             await Employees.findOneAndUpdate({ gmail: statusVal.customerid.emailOfUser }, { $push: { booksSold: { Date: currdate.toString(), buyer: statusVal.customerid.emailOfUser, copies: statusVal.no_Of_Copies_Asked, price: statusVal.price, ISBN: statusVal.ISBN } } });
             res.sendStatus(200);
@@ -671,7 +1055,43 @@ app.delete('/delete-book/:isbn', async (req, res) => {
     }
 });
 
-// api to order the books
+// api to order the book
+app.post("/order-book", async (req, res) => {
+    // first find if the book has been already ordered
+    const ifalreadyOrdered = await OrderedBook.find({ title: req.body.titleInput });
+    const { titleInput, authorInput, isbnInput, subjectInput, imageLinkInput, publicationDateInput, priceInput, copiesInput } = req.body;
+    if (ifalreadyOrdered) {
+        await OrderedBook.findOneAndUpdate(
+            {
+                title: titleInput,
+            }
+            ,
+            {
+                $inc: { frequency: +copiesInput }
+            },
+            {
+                returnOriginal: false,
+            }
+        )
+    }
+    else {
+        await OrderedBook.create({
+            title: titleInput,
+            author: authorInput,
+            ISBN: isbnInput,
+            subject: subjectInput,
+            image_url_l: imageLinkInput, // Assuming this is the large image URL
+            image_url_m: imageLinkInput, // Assuming this is the medium image URL
+            image_url_s: imageLinkInput, // Assuming this is the small image URL
+            publication_date: publicationDateInput,
+            price: priceInput,
+            frequency: copiesInput,
+        });
+    }
+    res.render("owner", { message: "Book has been Ordered!" });
+})
+
+// api to order the books below thresolds
 app.post("/order_book", async (req, res) => {
     // confirm the fetch request
     // console.log(req.body);
@@ -680,7 +1100,21 @@ app.post("/order_book", async (req, res) => {
     console.log(req.body.title);
     console.log("_______________________");
     // console.log(Book.find({ title: req.body.title }));
-    await Book.findOneAndUpdate({ title: req.body.title }, { $inc: { frequency: parseInt(req.body.quantity) } }, { new: true });
+    const getBook = await Book.findOne({ title: req.body.title });
+    console.log(getBook);
+    await OrderedBook.create({
+        title: getBook.title,
+        author: getBook.author,
+        ISBN: getBook.ISBN,
+        subject: getBook.subject,
+        image_url_l: getBook.image_url_l, // Assuming this is the large image URL
+        image_url_m: getBook.image_url_l, // Assuming this is the medium image URL
+        image_url_s: getBook.image_url_l, // Assuming this is the small image URL
+        publication_date: getBook.publication_date,
+        price: getBook.price,
+        frequency: parseInt(req.body.quantity),
+        location: getBook.location_id,
+    });
     console.log("Done");
     res.sendStatus(200);
 
@@ -694,14 +1128,53 @@ app.post("/order_req_book", async (req, res) => {
     console.log(req.body.title);
     console.log("_______________________");
     // console.log(Book.find({ title: req.body.title }));
-    await Book.create({ title: req.body.title, author: req.body.author, ISBN: req.body.ISBN, price: req.body.price, frequency: req.body.quantity });
+    await OrderedBook.create({ title: req.body.title, author: req.body.author, ISBN: req.body.ISBN, price: req.body.price, frequency: req.body.quantity, image_url_l: req.body.image, image_url_m: req.body.image, image_url_s: req.body.image, subject: req.body.subject });
+    // finally delete the book from the requested section
+    await requestedbook.deleteOne({ title: req.body.title });
     res.sendStatus(200);
 
 })
 
 // api to add the book-requested by owner or employee
-app.post("/book-request",async(req,res)=>{
+app.post("/book-request", async (req, res) => {
+    // This will add the book to database
+    console.log("I am inside the book-request function!")
+    console.log(req.query)
+    console.log(req.body)
+    // Extracting values from req.body using object destructuring
+    const { titleInput, authorInput, isbnInput, subjectInput, imageLinkInput, publicationDateInput, priceInput, copiesInput, location } = req.body;
 
+    // first find if the book is already there
+    const tempbook = await Book.findOne({ title: titleInput });
+    if (!tempbook)
+    // Now push these books to the Shop 
+    {
+        await Book.create({
+            title: titleInput,
+            author: authorInput,
+            ISBN: isbnInput,
+            subject: subjectInput,
+            image_url_l: imageLinkInput, // Assuming this is the large image URL
+            image_url_m: imageLinkInput, // Assuming this is the medium image URL
+            image_url_s: imageLinkInput, // Assuming this is the small image URL
+            publication_date: publicationDateInput,
+            price: priceInput,
+            frequency: copiesInput,
+            location_id: location
+        });
+    } else {
+        // The book is already there
+        await Book.findOneAndUpdate(
+            { title: titleInput },
+            {
+                $inc: { frequency: copiesInput }
+            }
+            , {
+                returnOriginal: false,
+            }
+        )
+    }
+    res.redirect('/employee?param1=${Book has been added sucessfully}');
 })
 
 // api to inspect the employee
@@ -739,5 +1212,50 @@ app.get("/inspectcs", async (req, res) => {
     }
 }
 )
+
+// 7th april: By Tharun
+
+// api to render the individual logout and data  page
+app.get("/individualspage", async (req, res) => {
+    if (loggedinCredentials.emailOfUser == "owner@gmail.com") {
+        res.render("owner", { message: "" });
+    }
+    else if (loggedinCredentials.typeOfUser == "e") {
+
+    }
+    const customer = await Customers.findOne({
+        gmail: loggedinCredentials.emailOfUser,
+    });
+    console.log(loggedinCredentials.emailOfUser);
+    console.log(customer);
+    console.log(customer.get("gmail"));
+    res.render("individuals", { customer: customer });
+});
+// api to  to edit the profile and logout
+app.post("/individualspage", async (req, res) => {
+    console.log("Inside the individual page!");
+    if (req.query.gmail) {
+        res.render("editprofile");
+    } else {
+        loggedinCredentials.emailOfUser = "";
+        res.redirect("/");
+    }
+});
+/// api to edit the profile
+app.post("/editprofile", async (req, res) => {
+    const id = req.body;
+    const updatedCustomer = await Customers.findOneAndUpdate(
+        { gmail: loggedinCredentials.emailOfUser }, // Search query: Find the document with the matching 'gmail' field
+        {
+            $set: {
+                address: id.address, // Update the 'address' field with the new value
+                phonenumber: id.phonenumber, // Update the 'phonenumber' field with the new value
+                fullname: id.fullname, // Update the 'fullname' field with the new value
+            },
+        }, // Update fields using the $set operator
+        { new: true } // Return the updated document after the update is applied
+    );
+    res.redirect("/");
+});
 
 app.listen(PORT, async () => console.log("server started"));
