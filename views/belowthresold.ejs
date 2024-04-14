@@ -264,11 +264,8 @@
                         <!-- Ignore Button -->
                         <a href="#" class="ignore-button"
                             onclick="ignoreBook('<%= book._id %>', '<%= index %>')">Ignore</a>
-                        <!-- Search Button -->
-                        <a href="#" class="search-button"
-                            onclick="searchOnline('<%= book.title %>', '<%= book.author %>')">Search Online</a>
-                        <!-- Order Button -->
-                        <a href="#" class="order-button" onclick="showOrderDialogue('<%= index %>')">Place Order</a>
+                     
+                     <a href="#" class="order-button" onclick="showOrderDialogue('<%= index %>')">Place Order</a>
                     </div>
                     <!-- Dialogue box for placing order -->
                     <div class="dialog-box" id="dialog<%= index %>">

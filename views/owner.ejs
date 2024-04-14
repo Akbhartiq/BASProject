@@ -423,11 +423,16 @@
                             <input type="number" name="threshold" placeholder="Threshold" required />
                             <button type="submit">View Books Below Threshold</button>
                         </form>
-                        <form class="form" action="/order-all-books-below-thresolds" method="post">
-                            <input type="number" name="quantityTobeAdded" placeholder="+?" required>
-                            <input type="number" name="thresold" placeholder="Thresold" required>
-                            <button type="submit">Order All Books Below Thresold</button>
+                        <form class="form" action="/order-all-books-below-thresholds" method="post">
+                            <label for="quantityTobeAdded" style="float:right">Quantity to be Added:</label>
+                            <input type="number" id="quantityTobeAdded" name="quantityTobeAdded" placeholder="+?" required>
+                            
+                            <label for="threshold">Threshold:</label>
+                            <input type="number" id="threshold" name="threshold" placeholder="Threshold" required>
+                            
+                            <button type="submit">Order All Books Below Threshold</button>
                         </form>
+                        
                     </div>
                     <!-- Section for book requests -->
                     <div class="card" style="background-image: url('');">

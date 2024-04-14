@@ -36,9 +36,29 @@ const customerSchema = new mongoose.Schema(
         }
       ],
     booksrequested:
-    {
-      type: mongoose.Schema.Types.Mixed,
-    },
+
+      [
+        {
+          Date1: { 
+            type:String,
+            default:"",
+          },
+          Date2:
+          {
+            type:String,
+            default:"",
+          },
+          ISBN: String,
+          title: String,
+          author: String,
+          flag:
+          {
+            type: Boolean,
+            default: false,
+          },
+        }
+      ],
+
     address:
     {
       type: String,
@@ -50,7 +70,16 @@ const customerSchema = new mongoose.Schema(
     phonenumber:
     {
       type: Number,
-    }
+    },
+    addedtocart:
+      [
+        {
+          title: String,
+          author: String,
+          price: Number,
+          ISBN: String,
+        }
+      ],
   });
 
 // Define the Employee Schema

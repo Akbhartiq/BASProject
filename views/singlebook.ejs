@@ -172,55 +172,69 @@
     </div>
     <div class="container">
         <% books.forEach((book, index)=> { %>
-            <div class="book-card" data-title="<%= book.get("title") %>"
+            <div class="book-card" data-title="<%= book.get(" title") %>"
                 data-author="<%= book.get("author") %>"
                     data-price="<%= book.get("price") %>"
                         data-isbn="<%= book.get("ISBN") %>"
-                        data-freq="<%=book.get("frequency")%>">
-                            <div class="book-details">
-                                <div class="book-title-container">
-                                    <h2 class="book-title">
-                                        <%= book.get("title") %>
-                                    </h2>
+                            data-freq="<%= book.get("frequency") %>">
+                                <div class="book-details">
+                                    <div class="book-title-container">
+                                        <h2 class="book-title">
+                                            <%= book.get("title") %>
+                                        </h2>
+                                    </div>
+                                    <p class="book-info"><b>Author:</b>
+                                        <%= book.get("author") %>
+                                    </p>
+                                    <p class="book-info"><b>Publication Date:</b>
+                                        <%= book.get("publication_date") %>
+                                    </p>
+                                    <p class="book-isbn"><b>ISBN:</b>
+                                        <%= book.get("ISBN") %>
+                                    </p>
+                                    <p class="book-info"><b>Genre:</b>
+                                        <%= book.get("genre") %>
+                                    </p>
+                                    <% if (book.get("frequency")> 0) { %>
+                                        <p class="book-info"><b>Copies Available:</b>
+                                            <%= book.get("frequency") %>
+                                        </p>
+                                        <p class="book-info">
+                                            <b>Location:
+                                                <%= book.get("location_id") %>
+                                            </b>
+                                        </p>
+                                        <p class="book-price">₹<%= book.get("price") %>/-</p>
+
+                                        <form id="orderForm" onsubmit="submitForm(event)">
+                                            <input type="hidden" id="titleInput" name="title" value="<%= book.get("
+                                                title") %>">
+                                            <input type="hidden" id="authorInput" name="author" value="<%= book.get("
+                                                author") %>">
+                                            <input type="hidden" id="priceInput" name="price" value="<%= book.get("
+                                                price") %>">
+                                            <input type="hidden" id="isbnInput" name="isbn" value="<%= book.get(" ISBN")
+                                                %>">
+                                            <input type="hidden" id="copiesAvailable" name="freq" value="<%= book.get("
+                                                frequency") %>">
+                                            <button type="submit" class="submit-button">Purchase</button>
+                                        </form>
+
+                                        <form action="/add-to-cart" method="get">
+                                            <input type="hidden" name="title" value="<%= book.get(" title") %>">
+                                            <!-- Other form inputs go here -->
+                                            <button type="submit" class="submit-button">Add to Cart</button>
+                                        </form>
+                                        <% } else { %>
+                                            <p class="book-info"><b>Status:</b> Not Available</p>
+                                            <% } %>
                                 </div>
-                                <p class="book-info"><b>Author:</b>
-                                    <%= book.get("author") %>
-                                </p>
-                                <p class="book-info"><b>Publication Date:</b>
-                                    <%= book.get("publication_date") %>
-                                </p>
-                                <p class="book-isbn"><b>ISBN:</b>
-                                    <%= book.get("ISBN") %>
-                                </p>
-                                <p class="book-info"><b>Genre:</b>
-                                    <%= book.get("genre") %>
-                                </p>
-                                <p class="book-info"><b>Copies Available:</b>
-                                    <%= book.get("frequency") %>
-                                </p>
-                                <p class="book-info">
-                                    <b>Location:
-                                        <%=book.get("location_id")%>
-                                    </b>
-                                </p>
-                                <p class="book-price">₹<%= book.get("price") %>/-</p>
-
-                                <form id="orderForm" onsubmit="submitForm(event)">
-                                    <input type="hidden" id="titleInput" name="title">
-                                    <input type="hidden" id="authorInput" name="author">
-                                    <input type="hidden" id="priceInput" name="price">
-                                    <input type="hidden" id="isbnInput" name="isbn">
-                                    <input type="hidden" id="copiesAvalable" name="freq" value="<%= book.get("frequency")%>">
-                                    <button type="submit" class="submit-button">Purchase</button>
-                                </form>
-
-
-                            </div>
             </div>
             <% if ((index + 1) % 2===0) { %>
                 <div style="width: 100%;"></div>
                 <% } %>
                     <% }) %>
+
     </div>
     <script>
 

@@ -37,7 +37,7 @@ const user = mongoose.model('User', UserSchema);
 
 // create the app instance
 const app = express();
-const PORT = 5000;
+const PORT = 8000;
 
 
 // init the session management
@@ -138,6 +138,7 @@ app.get("/signup", (req, res) => {
 // build the signup api (in post format:post the data to the back-end)
 app.post("/signup", async (req, res) => {
     const id = req.body;
+    console.log("I am inside the signup function!")
     console.log(req.body);
     if (id.gmail && id.password) {
         // check if the the requested gmail already exists
@@ -335,8 +336,22 @@ app.post("/order-all-books", async (req, res) => {
     let reqbook = await requestedbook.find();
     // push all the book to book section
     for (let i = 0; i < reqbook.length; i++) {
+        // Get the corresponding users who have requsted for the books, and now mark the flag as true
+        const cust_array = await requestedbook.findOne({ title: reqbook[i].title });
+        // traverse the customer section of the book and mark the flag as true
+        // Assuming cust_array.customerid is an array of customer objects with a 'gmail' property
+        // Traverse the customer section of the book and mark the flag as true
+        for (const customer of cust_array.customerid) {
+            // Find the customer in the Customers collection and update the flag for the requested book
+            await Customers.findOneAndUpdate(
+                { gmail: customer.gmail, "booksrequested.title": reqbook[i].title },
+                { $set: { "booksrequested.$.flag": true } },
+                { $set: { Date2: new Date() } },
+                { returnOriginal: false, },
+            );
+        }
         // first check if the book is already orderd
-        const ifBookAlreadyOrdered = await OrderedBook.findOne({ title: reqbook[i] });
+        const ifBookAlreadyOrdered = await OrderedBook.findOne({ title: reqbook[i].title });
         // create a book
         if (!ifBookAlreadyOrdered) {
             await OrderedBook.create(
@@ -369,16 +384,26 @@ app.post("/order-all-books", async (req, res) => {
     res.redirect("/owner");
 });
 
+// api to get the notifications for the employee
+app.get("/get-notifications", async (req, res) => {
+    const curr_Customer = await Customers.findOne({ gmail: loggedinCredentials.emailOfUser });
+    res.render("notification", { customer: curr_Customer });
+})
+
 // api to order all the books below thresolds
-app.post("/order-all-books-below-thresolds", async (req, res) => {
+app.post("/order-all-books-below-thresholds", async (req, res) => {
     // get the parameters from the api
     let Tobeadded = req.body.quantityTobeAdded;
     let Thresold = req.body.threshold;
+    console.log(Thresold, 'i am thresold!');
     let bookBelowThresold = await Book.find({ frequency: { $lt: Thresold } });
+    console.log('The number of books below thresold is ', bookBelowThresold.length);
     for (let i = 0; i < bookBelowThresold.length; i++) {
         // get all the books and push to orderd books for more copies
         // first check if the book is already orderd
-        const ifBookAlreadyOrdered = await OrderedBook.findOne({ title: bookBelowThresold[i] });
+        const ifBookAlreadyOrdered = await OrderedBook.findOne({ title: bookBelowThresold[i].title });
+        console.log(ifBookAlreadyOrdered);
+        console.log('I am if already Ordered!');
         // create a book
         if (!ifBookAlreadyOrdered) {
             await OrderedBook.create(
@@ -400,7 +425,7 @@ app.post("/order-all-books-below-thresolds", async (req, res) => {
                 (
                     { title: bookBelowThresold[i].title },
                     {
-                        $inc: { frequency: reqbook[i].count },
+                        $inc: { frequency: bookBelowThresold[i].count },
                     },
                     {
                         returnOriginal: false,
@@ -408,7 +433,74 @@ app.post("/order-all-books-below-thresolds", async (req, res) => {
                 )
         }
     }
+    res.render("owner", { message: "Book ordered SucessFully!" });
 })
+
+app.get("/view-business-data-employee-by-emoloyee", async (req, res) => {
+    // get the date,month and year
+    const gmail = req.query.gmail;
+    const date = req.query.date;
+    const month = req.query.month;
+    const year = req.query.year;
+
+    if (date && month && year) {
+        // If all three are given
+        const bookFallenBelowThreshold = await BookSolds.find({
+            date: date,
+            year: year,
+            month: month,
+            "details.Seller": loggedinCredentials.emailOfUser// Assuming gmail is a variable containing the seller's email
+        }); // Searching with respect to both year, date, and month
+        let totalamount = 0;
+        bookFallenBelowThreshold.forEach((book, index) => {
+            totalamount = totalamount + (book.price * book.frequency);
+        });
+
+        console.log(bookFallenBelowThreshold);
+        res.render("accounts", {
+            books: bookFallenBelowThreshold,
+            total: totalamount,
+        });
+    } else {
+        if (month && year) {
+            // If only month and year are given
+            const bookFallenBelowThreshold = await BookSolds.find({
+                year: year,
+                month: month,
+                "details.Seller": loggedinCredentials.emailOfUser,
+            });
+            let totalamount = 0;
+            bookFallenBelowThreshold.forEach((book, index) => {
+                totalamount = totalamount + (book.price * book.frequency);
+            });
+            console.log(bookFallenBelowThreshold);
+            res.render("accounts", {
+                books: bookFallenBelowThreshold,
+                total: totalamount,
+            });
+        } else {
+            if (year) {
+                // If only year is given
+                const bookFallenBelowThreshold = await BookSolds.find({ year: year, "details.Seller": loggedinCredentials.emailOfUser });
+                console.log(bookFallenBelowThreshold);
+                let totalamount = 0;
+                bookFallenBelowThreshold.forEach((book, index) => {
+                    totalamount = totalamount + (book.price * book.frequency);
+                });
+                res.render("accounts", {
+                    books: bookFallenBelowThreshold,
+                    total: totalamount,
+                });
+            } else {
+                // If neither year, month, nor date are given
+                res.redirect("/owner");
+            }
+        }
+    }
+});
+
+
+
 
 // api to see the buisness data
 app.get("/view-business-data", async (req, res) => {
@@ -665,6 +757,7 @@ const axios = require('axios');
 const { stat } = require('fs');
 const { cursorTo } = require('readline');
 const { time } = require('console');
+const { Logger } = require('selenium-webdriver/lib/logging.js');
 // const { default: mongoose } = require("mongoose");
 
 async function getISBN(title, author) {
@@ -693,11 +786,22 @@ app.post("/submit_details", async (req, res) => {
     const infoOfBook = req.body;
     const titleOfBook = infoOfBook.title;
     const authorOfBook = infoOfBook.author;
+    const isbnOfBook = infoOfBook.isbn;
     // const isbnOfBook = getISBN(titleOfBook, authorOfBook);
     // const publication_dateOfBook = infoOfBook.publication_date;
     const genre_of_book = infoOfBook.genre;
     const descpOfBook = infoOfBook.description;
     const subOfBook = infoOfBook.subject;
+    // push the info that the user has requsted for the books
+    await Customers.findOneAndUpdate(
+        { gmail: loggedinCredentials.emailOfUser }
+        , {
+            $push: { booksrequested: { Date1: new Date(), title: titleOfBook, author: authorOfBook, ISBN: isbnOfBook } },
+        }, {
+        returnOriginal: false,
+    }
+    )
+    // completed pushing to the customers database
     // find if the request already exists
     const ifalreadyexist = await requestedbook.findOne({ title: titleOfBook });
     console.log('I am inside the submit_details function!')
@@ -711,7 +815,7 @@ app.post("/submit_details", async (req, res) => {
         let min = 1300;
         let max = 2000;
         let priceVal = await Math.floor(Math.random() * (max - min)) + min;
-        const new_Requested_book = await requestedbook.create({ title: titleOfBook, author: authorOfBook, genre: genre_of_book, subject: subOfBook, ISBN: infoOfBook.isbn, image_url_l: infoOfBook.image, image_url_m: infoOfBook.image, image_url_s: infoOfBook.image, price: priceVal, customerid: [{ gmail: loggedinCredentials.emailOfUser }] });
+        const new_Requested_book = await requestesubmitdbook.create({ title: titleOfBook, author: authorOfBook, genre: genre_of_book, subject: subOfBook, ISBN: infoOfBook.isbn, image_url_l: infoOfBook.image, image_url_m: infoOfBook.image, image_url_s: infoOfBook.image, price: priceVal, customerid: [{ gmail: loggedinCredentials.emailOfUser }] });
     }
     res.redirect("/");
 })
@@ -1030,6 +1134,22 @@ app.delete('/delete-book/:isbn/:cid/:freqCopies', async (req, res) => {
             .catch(err => {
                 console.log("Error updating flag:", err);
             });
+        await Employees.findOneAndUpdate(
+            { gmail: loggedinCredentials.emailOfUser }, // Filter object
+            {
+                $push: {
+                    booksSold: {
+                        Date: new Date(),
+                        copies: value,
+                        buyer: custId,
+                        price: statusVal.price,
+                        ISBN: statusVal.ISBN
+                    }
+                }
+            },
+            { returnOriginal: false, }, // Update object
+        );
+
         if (statusVal) {
             // Book has been sold 
             // Get the CurrentDate
@@ -1039,7 +1159,7 @@ app.delete('/delete-book/:isbn/:cid/:freqCopies', async (req, res) => {
             const currdate = currentDate.getDate();
             const currhour = currentDate.getHours();
             // Add the books to the sold history
-            await BookSolds.create({ title: statusVal.title, ISBN: statusVal.ISBN, author: statusVal.author, frequency: statusVal.no_Of_Copies_Asked, details: { Buyer: statusVal.customerid.emailOfUser, Seller: loggedinCredentials.emailOfUser }, price: statusVal.price, currdate: currentDate.toString(), year: curryear, month: currmonth, date: currdate, hours: currhour });
+            await BookSolds.create({ title: statusVal.title, ISBN: statusVal.ISBN, author: statusVal.author, frequency: statusVal.no_Of_Copies_Asked, details: { Buyer: statusVal.customerid.emailOfUser, Seller: loggedinCredentials.emailOfUser }, price: statusVal.price, currdate: currentDate.toString(), year: curryear, month: currmonth + 1, date: currdate, hours: currhour });
             // Push the book sold to the list of the Employees
             await Employees.findOneAndUpdate({ gmail: statusVal.customerid.emailOfUser }, { $push: { booksSold: { Date: currdate.toString(), buyer: statusVal.customerid.emailOfUser, copies: statusVal.no_Of_Copies_Asked, price: statusVal.price, ISBN: statusVal.ISBN } } });
             res.sendStatus(200);
@@ -1128,8 +1248,32 @@ app.post("/order_req_book", async (req, res) => {
     console.log(req.body.title);
     console.log("_______________________");
     // console.log(Book.find({ title: req.body.title }));
-    await OrderedBook.create({ title: req.body.title, author: req.body.author, ISBN: req.body.ISBN, price: req.body.price, frequency: req.body.quantity, image_url_l: req.body.image, image_url_m: req.body.image, image_url_s: req.body.image, subject: req.body.subject });
-    // finally delete the book from the requested section
+    // 14th April
+    // Get the corresponding users who have requsted for the books, and now mark the flag as true
+    const cust_array = await requestedbook.findOne({ title: req.body.title });
+    // traverse the customer section of the book and mark the flag as true
+
+
+
+    // Assuming cust_array.customerid is an array of customer objects with a 'gmail' property
+    // Traverse the customer section of the book and mark the flag as true
+    for (const customer of cust_array.customerid) {
+        // Find the customer in the Customers collection and update the flag for the requested book
+        await Customers.findOneAndUpdate(
+            { gmail: customer.gmail, "booksrequested.title": req.body.title },
+            { $set: { "booksrequested.$.flag": true } },
+            { $set: { Date2: new Date() } },
+            { returnOriginal: false, },
+        );
+    }
+    // first check if the book has been already ordered
+    let ifordered = await OrderedBook.findOne({ title: req.body.title });
+    if (!ifordered) {
+        await OrderedBook.create({ title: req.body.title, author: req.body.author, ISBN: req.body.ISBN, price: req.body.price, frequency: req.body.quantity, image_url_l: req.body.image, image_url_m: req.body.image, image_url_s: req.body.image, subject: req.body.subject });
+    }
+    else {
+        await OrderedBook.findOneAndUpdate({ title: req.body.title }, { $inc: { frequency: req.body.title } }, { returnOriginal: false },);
+    }// finally delete the book from the requested section
     await requestedbook.deleteOne({ title: req.body.title });
     res.sendStatus(200);
 
@@ -1174,6 +1318,8 @@ app.post("/book-request", async (req, res) => {
             }
         )
     }
+    // Now remove the book from the orderbooks section
+    await OrderedBook.deleteOne({ title: titleInput });
     res.redirect('/employee?param1=${Book has been added sucessfully}');
 })
 
@@ -1257,5 +1403,90 @@ app.post("/editprofile", async (req, res) => {
     );
     res.redirect("/");
 });
+
+// april 11th 
+// api to allow the customers to add the books to cart
+app.get("/add-to-cart", async (req, res) => {
+
+    tittle = req.query.tittle;
+    console.log("hello");
+    console.log(tittle);
+    let book_details = await Book.findOne({ title: tittle });
+    await Customers.findOneAndUpdate(
+        { gmail: loggedinCredentials.emailOfUser }, // Search query: Find the document with the matching ID
+        { $push: { addedtocart: { title: book_details.title, author: book_details.author, price: book_details.price, ISBN: book_details.ISBN } } },
+        {
+            returnOriginal: false,
+        }
+    );
+    console.log("hello");
+    console.log(book_details);
+    res.redirect("/");
+});
+app.get("/view-cart", async (req, res) => {
+    try {
+        // Fetch requested books data from MongoDB
+        let customer = await Customers.findOne(
+            { gmail: loggedinCredentials.emailOfUser }, // Search query: Find the document with the matching ID 
+        );
+        let books = customer.get("addedtocart");
+        console.log(books);
+        res.render("cart.ejs", { books });
+    } catch (error) {
+        console.error("Error fetching requested books:", error);
+        res.status(500).send("Internal Server Error");
+    }
+
+});
+app.get("/singlebook-cart", async (req, res) => {
+    const bookTitle = req.query.title;
+    // search the book-title here
+    const custId = loggedinCredentials.emailOfUser;
+    // let's remove the book from the cart
+    await Customers.findOneAndUpdate(
+        { gmail: custId },
+        {
+            $pull: { addedtocart: { title: bookTitle } },
+        },
+        {
+            returnOriginal: false,
+        }
+    )
+    const bookinfo = await Book.find({ title: bookTitle });
+    console.log(bookinfo);
+    console.log("************");
+    res.render("singlebook", { books: bookinfo });
+
+});
+app.get("/remove-from-cart", async (req, res) => {
+    const bookTitle = req.query.title;
+    const custId = loggedinCredentials.emailOfUser;
+
+    // Remove the book from the cart
+    await Customers.findOneAndUpdate(
+        { gmail: custId },
+        {
+            $pull: { addedtocart: { title: bookTitle } },
+        },
+        {
+            new: true, // Return the updated document
+        }
+    );
+
+    // Fetch the updated customer document
+    const customer = await Customers.findOne(
+        { gmail: loggedinCredentials.emailOfUser } // Search query: Find the document with the matching email
+    );
+
+    // Get the updated list of books in the cart
+    const books = customer.addedtocart;
+
+    console.log(books);
+
+    // Render the "cart.ejs" template with the updated list of books in the cart
+    res.render("cart.ejs", { books });
+});
+
+
 
 app.listen(PORT, async () => console.log("server started"));

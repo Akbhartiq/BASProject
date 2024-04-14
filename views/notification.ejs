@@ -4,57 +4,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Details</title>
+    <title>Customer Books Requested</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
             text-align: center;
+            margin-top: 20px;
+            color: #333;
         }
 
-        .book-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 2px solid #ccc;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px auto;
-            max-width: 400px;
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .book-image {
-            width: 200px;
-            height: 300px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .book-title {
-            font-size: 24px;
-            margin: 10px 0;
-        }
-
-        .book-author {
-            font-size: 18px;
+        li {
+            background-color: #fff;
+            padding: 10px;
             margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .isbn {
-            margin-top: 10px;
+        li:hover {
+            background-color: #f0f0f0;
         }
 
-        .price {
+        li::before {
+            content: "•";
+            color: #333;
             font-weight: bold;
-            font-size: 20px;
-            color: green;
-            margin-top: 10px;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
         }
 
-        .freq {
+        li span {
             font-weight: bold;
-            font-size: 20px;
-            color: rgb(57, 32, 198);
-            margin-top: 10px;
+            color: #007bff;
         }
 
         /* Navigation Bar Styles */
@@ -98,6 +92,7 @@
 </head>
 
 <body>
+    <!-- Navigation Bar -->
     <nav>
         <ul>
             <li><a href="/">Home</a></li>
@@ -106,26 +101,18 @@
             <!-- Add more navigation links as needed -->
         </ul>
     </nav>
-    <% if (book) { %>
-        <div class="book-container">
-            <img class="book-image" src="./bookimage.jpg" alt="Book Cover">
-            <div class="book-details">
-                <h2 class="book-title">
-                    <%= book.title %>
-                </h2>
-                <p class="book-author">by <%= book.author %>
-                </p>
-                <p class="isbn">ISBN: <%= book.isbn %>
-                </p>
-                <p class="price">$<%= book.price %>
-                </p>
-                <p class="freq">Number Of Demands: <%= book.freq %>
-                </p>
-            </div>
-        </div>
-        <% } else { %>
-            <p>No book found.</p>
-            <% } %>
+    <h1>Books Requested by <%= customer.gmail %>
+    </h1>
+    <ul>
+        <% customer.booksrequested.forEach(book=> { %>
+            <% if (book.flag) { %>
+                <li><span>
+                        <%= book.title %>
+                    </span> has been ordered on <%= book.Date1 %> and confirmed on <%= book.Date2 %>
+                </li>
+                <% } %>
+                    <% }); %>
+    </ul>
 </body>
 
 </html>

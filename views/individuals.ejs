@@ -190,7 +190,7 @@
             </p>
         </div>
 
-        <form class="edit-profile-form" action="/individualspage?gmail=<%= locals.customer.get(" gmail") %>"
+        <form class="edit-profile-form" action="/individualspage?gmail=<%= locals.customer.get("gmail") %>"
             method="post">
             <button class="form-button" type="submit">Edit Profile</button>
         </form>
@@ -201,11 +201,19 @@
 
     </div>
     <div style=" padding: 10px;">
+        <form action="/get-notifications" method="get">
+            <input type="hidden" name="gmail" value="<%= locals.customer.get('gmail') %>">
+            <button type="submit">Get Notifications</button>
+        </form>
         <form action="/cust_hist" method="get">
             <input type="hidden" name="gmail" value="<%= locals.customer.get('gmail') %>">
             <button type="submit">Get History</button>
         </form>
-
+        <br>
+        <br>
+        <form action="/view-cart" method="get">
+            <button type="submit">Cart</button>
+        </form>
     </div>
 
 </body>
